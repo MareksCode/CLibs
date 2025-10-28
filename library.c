@@ -1,7 +1,9 @@
 #include "library.h"
 
+#include <math.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void hello(void) {
     printf("Hello, World!\n");
@@ -31,3 +33,16 @@ double *scaled(double *numbers, int numberArrayLength, double minimum, double al
     return numbers;
 }
 
+//creates a new array of the length <length> containing values belonging to a sine function multiplied by <amp>.
+//every index in the returned array increments the sine result by samplingRate
+double *createSineArray(double samplingRate, double amp, int length) {
+    double *sineArray = calloc(length, sizeof(double));
+    double currentX = 0;
+    for (int i = 0; i < length; i+=1) {
+        sineArray[i] = sin(currentX) * amp;
+
+        currentX += samplingRate;
+    }
+
+    return sineArray;
+}
