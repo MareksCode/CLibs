@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
 double lerp(double x1, double x2, double alpha) {
@@ -29,13 +30,18 @@ double *scaled(double *numbers, int numberArrayLength, double minimum, double al
     return numbers;
 }
 
-//creates a new array of the length <length> containing values belonging to a sine function multiplied by <amp>.
-//every index in the returned array increments the sine result by samplingRate
+//creates a new array picturing an entire sine wave multiplied by <amp>. The number of values is determined by <samplingRate> (how many values should be calculated)
 double *createSineArray(double samplingRate, double amp) {
     int length = 6.28 / samplingRate; //forced cast
     length+=1; //make sure the entire sine is included
 
     double *sineArray = calloc(length, sizeof(double));
+
+    if (sineArray == NULL) {
+        printf("calloc failed\n");
+        return 0;
+    }
+
     for (int i = 0; i < length; i+=1) {
         sineArray[i] = sin(i * samplingRate) * amp;
     }
@@ -48,7 +54,7 @@ double *createSineArray(double samplingRate, double amp) {
 int createArrayFile(double *array, int arrayLength) {
     FILE *filePointer;
 
-    filePointer = fopen("savedArray.txt", "w");
+    filePointer = fopen("./savedArray.txt", "w");
 
     if (filePointer == NULL) {
         printf("Error creating new file\n");
@@ -65,20 +71,53 @@ int createArrayFile(double *array, int arrayLength) {
     return 1;
 }
 
+//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed array
 double* readSavedArrayFile() {
     FILE *filePointer;
-    char ch;
 
-    filePointer = fopen("savedArray.txt", "r");
+    FILE *pointerToBeginning = filePointer;
+
+    filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
         return 0;
     }
 
-    while ((ch = fgetc(filePointer)) != EOF) { //schauen bis end of file
-        putchar(ch);
+    int length = 0; //count all doubles
+    char ch;
+    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
+        if (ch == '\n') {
+            length += 1;
+        }
+    }
+
+    double *savedArray = calloc(length, sizeof(double));
+    if (savedArray == NULL) {
+        printf("calloc failed\n");
+        return 0;
+    }
+
+    filePointer = pointerToBeginning; //reset reading head
+
+    char *currentString;
+    int currentStringLength = 0;
+    int currentDoubleInSavedArray = 0;
+    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
+        currentString = realloc(currentString, currentStringLength + 1); //dynamically load new string of double
+        currentString[currentStringLength] = ch;
+
+        if (ch == '\n') { //end of the double was reached
+            //parse string & put into finished array
+            savedArray[currentDoubleInSavedArray] = strtod(currentString, &currentString[currentStringLength]);
+
+            //reset string values
+            free(currentString);
+            currentString = 0;
+        } else {
+            currentStringLength += 1;
+        }
     }
 
     fclose(filePointer);
-    return 0;
+    return savedArray;
 }
