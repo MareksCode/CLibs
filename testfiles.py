@@ -70,6 +70,9 @@ class Testing():
         print("Result:", result)
 
     def test_create_read(self):
+        """tests the createArrayFile and readSavedArrayFile functions
+        prints out number of generated values, sucess of writing and if generated
+        values match read values."""
         fnc = CDLL("./"+self.sharedfilename)
         fnc.createArrayFile.argtypes = [
             POINTER(c_double),
@@ -79,7 +82,7 @@ class Testing():
 
         x = list()
 
-        for _ in range(random.randint(5,10)):
+        for _ in range(random.randint(1000,10000)):
             x.append(random.randint(0,10000))
         
         numbers = list(x)
@@ -88,14 +91,12 @@ class Testing():
         c_array = arr_type(*numbers)
 
         result = fnc.createArrayFile(c_array, length)
-        print(f"Created array with {length} numbers with output: {result}")
+        print(f"Created array with {length} numbers. writing output: {result}")
 
         if result == 1:
             fnc.readSavedArrayFile.argtypes = []
             fnc.readSavedArrayFile.restype = POINTER(c_double)
-
             result_ptr = fnc.readSavedArrayFile()
-
             result = [result_ptr[i] for i in range(length)]
             print("Matches original:", result == x)
 
