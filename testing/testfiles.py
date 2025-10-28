@@ -1,5 +1,5 @@
 from ctypes import *
-import os, math
+import os, math, random
 
 class Testing():
     def __init__(self, filename:str):
@@ -69,8 +69,44 @@ class Testing():
         result = [result_ptr[i] for i in range(length)]
         print("Result:", result)
 
+    def test_create_read(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.createArrayFile.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.createArrayFile.restype = int
+
+        x = list()
+
+        for _ in range(random.randint(5,10)):
+            x.append(random.randint(0,10000))
+        
+        numbers = list(x)
+        length = len(numbers)
+        arr_type = c_double * len(numbers)
+        c_array = arr_type(*numbers)
+
+        result = fnc.createArrayFile(c_array, length)
+        print(f"Created array with {length} numbers with output: {result}")
+
+        if result == 1:
+            fnc.readSavedArrayFile.argtypes = []
+            fnc.readSavedArrayFile.restype = POINTER(c_double)
+
+            result_ptr = fnc.readSavedArrayFile()
+
+            result = [result_ptr[i] for i in range(length)]
+            print("Matches original:", result == x)
+
+
+
+
+
 if __name__ == "__main__":
     test = Testing("library.c")
     #test.test_lerp()
     #test.test_unify()
-    test.test_createSineArray()
+    #test.test_createSineArray()
+    test.test_create_read()
+    
