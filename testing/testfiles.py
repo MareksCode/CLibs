@@ -1,5 +1,5 @@
 from ctypes import *
-import os
+import os, unittest
 
 class Testing():
     def __init__(self, filename:str):
@@ -22,9 +22,35 @@ class Testing():
         print(fnc.lerp(10,-20,0.5))
         print(fnc.lerp(10,20,-15))
 
-    def __del__(self):
-        os.remove(self.sharedfilename)    
+    def test_unify(self):
+        """tests the unify function in library.co"""
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.scaled.argtypes = [
+            POINTER(c_double),
+            c_double, 
+            c_int,                 
+            c_double          
+        ]
+
+        fnc.scaled.restype = POINTER(c_double)
+
+        numbers = [1.0, 2.0, 3.0, 4.0]
+        arr_type = c_double * len(numbers)
+        c_array = arr_type(*numbers)
+        
+        minimum = 2
+        alpha = 0.5
+        length = len(numbers)
+        
+        result_ptr = fnc.scaled(c_array, length, minimum, alpha)
+        
+        result = [result_ptr[i] for i in range(length)]
+        print("hsuibf")
+        expected = [2.5, 2.5, 2.5, 2.5]  
+        print("Result:", result)
+        print("Expected:", expected)
 
 if __name__ == "__main__":
     test = Testing("library.c")
-    test.test_lerp()
+    #test.test_lerp()
+    test.test_unify()
