@@ -46,3 +46,25 @@ double *createSineArray(double samplingRate, double amp, int length) {
 
     return sineArray;
 }
+
+//Takes a pointer to an array and creates a savedArray.txt containing all the values
+//Returns 1 when everything worked, 0 if there was an error
+int createArrayFile(double *array, int arrayLength) {
+    FILE *filePointer;
+
+    filePointer = fopen("savedArray.txt", "w");
+
+    if (filePointer == NULL) {
+        printf("Error creating new file\n");
+        return 0;
+    }
+
+    for (int i = 0; i < arrayLength; i++) {
+        fprintf(filePointer, "%f\n", array[i]);
+    }
+
+    fclose(filePointer);
+
+    printf("File created\n");
+    return 1;
+}
