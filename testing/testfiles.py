@@ -10,9 +10,9 @@ class Testing():
         self.filename = filename
         self.sharedfilename = f"{filename}o"
 
-    def test_lerp():
+    def test_lerp(self):
         """tests the lerp function in library.co"""
-        fnc = CDLL("./library.co")
+        fnc = CDLL(self.sharedfilename)
 
         fnc.lerp.argtypes = [c_double, c_double, c_double]
         fnc.lerp.restype = c_double
