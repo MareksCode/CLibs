@@ -1,5 +1,5 @@
 from ctypes import *
-import os, unittest
+import os, math
 
 class Testing():
     def __init__(self, filename:str):
@@ -47,7 +47,30 @@ class Testing():
         result = [result_ptr[i] for i in range(length)]
         print("Result:", result)
 
+    def test_createSineArray(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.scaled.argtypes = [
+            c_double,
+            c_double,
+            c_int
+            ]
+
+        fnc.createSineArray.restype = POINTER(c_double)
+
+        samplingRate = c_double(30)
+        amplitude = c_double(1.0)
+        length = 20
+
+        for i in range(length):
+            print(i, ":", math.sin(2 * math.pi * (i / samplingRate.value)))
+
+        result_ptr = fnc.createSineArray(samplingRate, amplitude, length)
+
+        result = [result_ptr[i] for i in range(length)]
+        print("Result:", result)
+
 if __name__ == "__main__":
     test = Testing("library.c")
     #test.test_lerp()
-    test.test_unify()
+    #test.test_unify()
+    test.test_createSineArray()
