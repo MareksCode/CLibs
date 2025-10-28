@@ -5,10 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void hello(void) {
-    printf("Hello, World!\n");
-}
-
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
 double lerp(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) { //ask prof if this is needed
@@ -35,13 +31,13 @@ double *scaled(double *numbers, int numberArrayLength, double minimum, double al
 
 //creates a new array of the length <length> containing values belonging to a sine function multiplied by <amp>.
 //every index in the returned array increments the sine result by samplingRate
-double *createSineArray(double samplingRate, double amp, int length) {
-    double *sineArray = calloc(length, sizeof(double));
-    double currentX = 0;
-    for (int i = 0; i < length; i+=1) {
-        sineArray[i] = sin(currentX) * amp;
+double *createSineArray(double samplingRate, double amp) {
+    int length = 6.28 / samplingRate; //forced cast
+    length+=1; //make sure the entire sine is included
 
-        currentX += samplingRate;
+    double *sineArray = calloc(length, sizeof(double));
+    for (int i = 0; i < length; i+=1) {
+        sineArray[i] = sin(i * samplingRate) * amp;
     }
 
     return sineArray;
@@ -67,4 +63,22 @@ int createArrayFile(double *array, int arrayLength) {
 
     printf("File created\n");
     return 1;
+}
+
+double* readSavedArrayFile() {
+    FILE *filePointer;
+    char ch;
+
+    filePointer = fopen("savedArray.txt", "r");
+    if (filePointer == NULL) {
+        printf("Could not open file\n");
+        return 0;
+    }
+
+    while ((ch = fgetc(filePointer)) != EOF) { //schauen bis end of file
+        putchar(ch);
+    }
+
+    fclose(filePointer);
+    return 0;
 }
