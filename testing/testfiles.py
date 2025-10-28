@@ -6,13 +6,13 @@ class Testing():
         """creates an co (coperative object) file from a c file\n
         @filename: name of the c file in current working directory
         """
-        os.system(f"gcc -fPIC -shared -o ./{filename}o ./filename")
+        os.system(f"gcc -fPIC -shared -o ./{filename}o ./{filename}")
         self.filename = filename
         self.sharedfilename = f"{filename}o"
 
     def test_lerp(self):
         """tests the lerp function in library.co"""
-        fnc = CDLL(self.sharedfilename)
+        fnc = CDLL("./"+self.sharedfilename)
 
         fnc.lerp.argtypes = [c_double, c_double, c_double]
         fnc.lerp.restype = c_double
