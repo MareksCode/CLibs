@@ -27,8 +27,8 @@ class Testing():
         fnc = CDLL("./"+self.sharedfilename)
         fnc.scaled.argtypes = [
             POINTER(c_double),
-            c_double, 
-            c_int,                 
+            c_int, 
+            c_double,                 
             c_double          
         ]
 
@@ -38,17 +38,14 @@ class Testing():
         arr_type = c_double * len(numbers)
         c_array = arr_type(*numbers)
         
-        minimum = 2
-        alpha = 0.5
+        minimum = 0
+        alpha = 2.2
         length = len(numbers)
         
         result_ptr = fnc.scaled(c_array, length, minimum, alpha)
         
         result = [result_ptr[i] for i in range(length)]
-        print("hsuibf")
-        expected = [2.5, 2.5, 2.5, 2.5]  
         print("Result:", result)
-        print("Expected:", expected)
 
 if __name__ == "__main__":
     test = Testing("library.c")
