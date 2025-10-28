@@ -1,6 +1,7 @@
-#ifndef UNTITLED2_LIBRARY_H
-#define UNTITLED2_LIBRARY_H
+#ifndef MMS_LIB
+#define MMS_LIB
 
 void hello(void);
+double lerp(double x1, double x2, double alpha);
 
-#endif // UNTITLED2_LIBRARY_H
+#endif
