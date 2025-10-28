@@ -20,7 +20,7 @@ double lerp(double x1, double x2, double alpha) {
 
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
 //For easy usability, it returns a pointer to the inputted array so you can wrap your array call
-double *scale(double minimum, double alpha, double *numbers, int numberArrayLength) {
+double *scaled(double *numbers, int numberArrayLength, double minimum, double alpha) {
     for (int i = 0; i < numberArrayLength; i++) {
         numbers[i] *= alpha;
         if (numbers[i] < minimum) {
@@ -30,3 +30,4 @@ double *scale(double minimum, double alpha, double *numbers, int numberArrayLeng
 
     return numbers;
 }
+
