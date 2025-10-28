@@ -108,7 +108,8 @@ double* readSavedArrayFile() {
 
         if (ch == '\n') { //end of the double was reached
             //parse string & put into finished array
-            savedArray[currentDoubleInSavedArray] = strtod(currentString, &currentString[currentStringLength]);
+            char *endPointer = &currentString[currentStringLength];
+            savedArray[currentDoubleInSavedArray] = strtod(currentString, &endPointer);
 
             //reset string values
             free(currentString);
