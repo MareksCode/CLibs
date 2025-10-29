@@ -84,8 +84,6 @@ double* readSavedArrayFile() {
         return NULL;
     }
 
-    FILE *pointerToBeginning = filePointer;
-
     int length = 0; //count all doubles
     char ch;
     while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
@@ -101,7 +99,7 @@ double* readSavedArrayFile() {
         return NULL;
     }
 
-    filePointer = pointerToBeginning; //reset reading head
+    rewind(filePointer);
 
     //Linkin Park list
     Node *head = malloc(sizeof(Node));
@@ -109,6 +107,7 @@ double* readSavedArrayFile() {
     head->prev = NULL;
 
     int doubleCounter = 0;
+
     while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
         int currentNumberLength = 0;
 
@@ -129,10 +128,13 @@ double* readSavedArrayFile() {
             //write char in array
             char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
 
+            int i = 0;
             Node *iterator = head;
             do {
+                //printf("char: %c\n", iterator->data);
                 iterator = iterator->next;
-                doubleAsString[currentNumberLength] = iterator->data;
+                doubleAsString[i] = iterator->data;
+                i+=1;
             } while (iterator->next != NULL); //to include the last char
 
             savedArray[doubleCounter] = strtod(doubleAsString, NULL);
@@ -157,4 +159,12 @@ double* readSavedArrayFile() {
 
     fclose(filePointer);
     return savedArray;
+}
+
+int main() { //test for write & read file
+    double array[] = {1,2,3,4,5,6,7,8,9,10};
+    createArrayFile(array, 10);
+    double* a = readSavedArrayFile();
+    free(a);
+    return 0;
 }
