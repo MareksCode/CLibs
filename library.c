@@ -53,6 +53,7 @@ double *createSineArray(double samplingRate, double amp) {
 int createArrayFile(double *array, int arrayLength) {
     FILE *filePointer;
 
+
     filePointer = fopen("./savedArray.txt", "w");
 
     if (filePointer == NULL) {
