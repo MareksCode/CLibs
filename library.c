@@ -32,9 +32,8 @@ double *scaled(double *numbers, int numberArrayLength, double minimum, double al
 
 //creates a new array picturing an entire sine wave multiplied by <amp>. The number of values is determined by <samplingRate> (how many values should be calculated)
 double *createSineArray(double samplingRate, double amp) {
-    int length = 6.28 / samplingRate; //forced cast
-    length+=1; //make sure the entire sine is included
-
+    double stepsize = 6.28 / samplingRate; //forced cast
+    int length = samplingRate + 1;
     double *sineArray = calloc(length, sizeof(double));
 
     if (sineArray == NULL) {
@@ -43,7 +42,7 @@ double *createSineArray(double samplingRate, double amp) {
     }
 
     for (int i = 0; i < length; i+=1) {
-        sineArray[i] = sin(i * samplingRate) * amp;
+        sineArray[i] = sin(i * stepsize) * amp;
     }
 
     return sineArray;
@@ -71,13 +70,10 @@ int createArrayFile(double *array, int arrayLength) {
     return 1;
 }
 
-typedef struct node {
-    char data;
-    struct node* next;
-    struct node* prev;
-} Node;
-
 //reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed array
+#include <stdio.h>
+#include <stdlib.h>
+
 double* readSavedArrayFile() {
     FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
@@ -85,15 +81,14 @@ double* readSavedArrayFile() {
         return NULL;
     }
 
-    FILE *pointerToBeginning = filePointer;
-
-    int length = 0; //count all doubles
+    int length = 0;
     char ch;
-    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
-        if (ch == '\n') {
-            length += 1;
-        }
+    while ((ch = fgetc(filePointer)) != EOF) {
+        if (ch == '\n')
+            length++;
     }
+
+    rewind(filePointer);
 
     double *savedArray = calloc(length, sizeof(double));
     if (savedArray == NULL) {
@@ -102,60 +97,24 @@ double* readSavedArrayFile() {
         return NULL;
     }
 
-    filePointer = pointerToBeginning; //reset reading head
+    char *currentString = NULL;
+    int currentStringLength = 0;
+    int currentDoubleInSavedArray = 0;
 
-    //Linkin Park list
-    Node *head = malloc(sizeof(Node));
-    head->next = NULL;
-    head->prev = NULL;
-
-    int doubleCounter = 0;
-    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
-        int currentNumberLength = 0;
-
-        Node *newNode = malloc(sizeof(Node));
-        newNode->data = ch;
-        newNode->next = NULL;
-
-        Node *previousNode = head;
-        while (previousNode->next != NULL) {
-            previousNode = previousNode->next;
-            currentNumberLength+=1;
-        }
-
-        previousNode->next = newNode;
-        newNode->prev = previousNode;
+    while ((ch = fgetc(filePointer)) != EOF) {
+        currentString = realloc(currentString, currentStringLength + 2);
+        currentString[currentStringLength++] = ch;
+        currentString[currentStringLength] = '\0';
 
         if (ch == '\n') {
-            //write char in array
-            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
-
-            Node *iterator = head;
-            do {
-                iterator = iterator->next;
-                doubleAsString[currentNumberLength] = iterator->data;
-            } while (iterator->next != NULL); //to include the last char
-
-            savedArray[doubleCounter] = strtod(doubleAsString, NULL);
-            doubleCounter += 1;
-
-            free(doubleAsString);
-
-            //reduce the linkedlist to it's header again
-            Node *nextNode = newNode;
-            Node *deletingNode;
-            while (nextNode->prev != NULL) {
-                deletingNode = nextNode;
-                nextNode = nextNode->prev;
-
-                free(deletingNode);
-            }
-            head->next = NULL;
+            savedArray[currentDoubleInSavedArray++] = strtod(currentString, NULL);
+            free(currentString);
+            currentString = NULL;
+            currentStringLength = 0;
         }
     }
 
-    free(head);
-
+    if (currentString != NULL) free(currentString);
     fclose(filePointer);
     return savedArray;
 }

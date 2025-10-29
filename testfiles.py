@@ -19,7 +19,7 @@ class Testing():
         print("testing createSineArray...")
         self.test_createSineArray()
         print("testing create and read array file...")
-        #self.test_create_read()
+        self.test_create_read()
 
     def test_lerp(self):
         """tests the lerp function in library.co"""
