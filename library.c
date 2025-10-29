@@ -17,6 +17,14 @@ double lerp(double x1, double x2, double alpha) {
     return (x1 + alpha*diff);
 }
 
+double *lerp2D(double *p1, double *p2, int alpha) {
+    double *resultingPoint = calloc(2, sizeof(double));
+    resultingPoint[0] = lerp(p1[0], p2[0], alpha);
+    resultingPoint[1] = lerp(p1[1], p2[1], alpha);
+
+    return resultingPoint;
+}
+
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
 //For easy usability, it returns a pointer to the inputted array so you can wrap your array call
 double *scaled(double *numbers, int numberArrayLength, double minimum, double alpha) {
