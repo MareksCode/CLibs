@@ -32,7 +32,7 @@ double *scaled(double *numbers, int numberArrayLength, double minimum, double al
 
 //creates a new array picturing an entire sine wave multiplied by <amp>. The number of values is determined by <samplingRate> (how many values should be calculated)
 double *createSineArray(double samplingRate, double amp) {
-    double stepsize = 6.28 / samplingRate; //forced cast
+    double stepsize = (3.1415*2) / samplingRate; //forced cast
     int length = samplingRate + 1;
     double *sineArray = calloc(length, sizeof(double));
 

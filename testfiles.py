@@ -12,14 +12,19 @@ class Testing():
 
     def test_all(self):
         """runs all tests"""
+        print("###################################\n")
         print("testing lerp...")
         self.test_lerp()
+        print("\n###################################\n")
         print("testing unify...")
         self.test_unify()
+        print("\n###################################\n")
         print("testing createSineArray...")
-        self.test_createSineArray()
+        print (f"test für sinus ist {self.test_createSineArray()}") 
+        print("\n###################################\n")
         print("testing create and read array file...")
         self.test_create_read()
+        print("\n###################################")
 
     def test_lerp(self):
         """tests the lerp function in library.co"""
@@ -71,14 +76,20 @@ class Testing():
         amplitude = c_double(1.0)
         stepsize = (2*math.pi) / samplingRate.value
 
-        for i in range(int(samplingRate.value)):
-            print(i, ":", math.sin(stepsize * i) * amplitude.value)
-
         result_ptr = fnc.createSineArray(samplingRate, amplitude)
-
-        result = [result_ptr[i] for i in range(int(samplingRate.value))]
-        print("Result:", result)
-
+        isValid = True
+        averageAbweichung = 0.0
+        for i in range (int(samplingRate.value)):
+            sinval = math.sin(stepsize * i) * amplitude.value
+            abweichung = abs(result_ptr[i] - sinval)
+            averageAbweichung += abweichung
+            averageAbweichung /= 2
+            if abweichung > 0.002: 
+                isValid = False
+                print(f"{i}: {result_ptr[i]},  (abweichung: {abweichung}) zu groß!")
+        print(f"average abweichung: {averageAbweichung}")
+        return isValid
+    
     def test_create_read(self):
         """tests the createArrayFile and readSavedArrayFile functions
         prints out number of generated values, sucess of writing and if generated
@@ -90,10 +101,10 @@ class Testing():
             ]
         fnc.createArrayFile.restype = int
 
+        #x ist liste mit nummern die getestet werden, ggf, auch über sinarray erstellbar
         x = list()
-
         for _ in range(random.randint(1000,10000)):
-            x.append(random.randint(0,10000))
+            x.append(random.randint(-10000,10000))
         
         numbers = list(x)
         length = len(numbers)
@@ -108,15 +119,9 @@ class Testing():
             fnc.readSavedArrayFile.restype = POINTER(c_double)
             result_ptr = fnc.readSavedArrayFile()
             result = [result_ptr[i] for i in range(length)]
-            print(result[20:30])
-            print(x[20:30])
-            print("Matches original:", result == x)
-
-
-
+            print("Reading matches original:", bool(result == x))
 
 
 if __name__ == "__main__":
     test = Testing("library.c")
-    test.test_all()
-    
+    test.test_all()   
