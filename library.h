@@ -1,5 +1,5 @@
-#ifndef MMS_LIB
-#define MMS_LIB
+#ifndef MMS2526
+#define MMS2526
 
 double lerp(double x1, double x2, double alpha);
 double *lerp2D(double *p1, double *p2, double alpha);
