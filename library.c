@@ -17,6 +17,7 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     return (x1 + alpha*diff);
 }
 
+//linearly interpolates 2d points represented by arrays by <alpha>
 double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
     double *resultingPoint = calloc(2, sizeof(double));
     resultingPoint[0] = interpolateDigitsByAlpha(p1[0], p2[0], alpha);
@@ -25,6 +26,7 @@ double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
     return resultingPoint;
 }
 
+//linearly interpolates 2d points represented by arrays using an x inbetween them
 double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
     double x1 = p1[0];
     double x2 = p2[0];
@@ -39,6 +41,22 @@ double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
         alpha = (x-x2)/fullLength;
         return interpolate2DPointsByAlpha(p2,p1,alpha);
     }
+}
+
+//Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
+double getYForXInterpolatedBetween2Points(double x1, double y1, double x2, double y2, double x) {
+    if (x > x2 || x < x1) {
+        exit(6);
+    }
+
+    double smallerX = x1;
+    if (x2 < x1) {
+        smallerX = x2;
+    }
+
+    double alpha = (x-smallerX)/fabs(x1-x2);
+
+    return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
