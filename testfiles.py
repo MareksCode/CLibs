@@ -10,6 +10,17 @@ class Testing():
         self.filename = filename
         self.sharedfilename = f"{filename}o"
 
+    def test_all(self):
+        """runs all tests"""
+        print("testing lerp...")
+        self.test_lerp()
+        print("testing unify...")
+        self.test_unify()
+        print("testing createSineArray...")
+        self.test_createSineArray()
+        print("testing create and read array file...")
+        #self.test_create_read()
+
     def test_lerp(self):
         """tests the lerp function in library.co"""
         fnc = CDLL("./"+self.sharedfilename)
@@ -52,21 +63,20 @@ class Testing():
         fnc.scaled.argtypes = [
             c_double,
             c_double,
-            c_int
             ]
 
         fnc.createSineArray.restype = POINTER(c_double)
 
         samplingRate = c_double(30)
         amplitude = c_double(1.0)
-        length = 20
+        stepsize = (2*math.pi) / samplingRate.value
 
-        for i in range(length):
-            print(i, ":", math.sin(2 * math.pi * (i / samplingRate.value)))
+        for i in range(int(samplingRate.value)):
+            print(i, ":", math.sin(stepsize * i) * amplitude.value)
 
-        result_ptr = fnc.createSineArray(samplingRate, amplitude, length)
+        result_ptr = fnc.createSineArray(samplingRate, amplitude)
 
-        result = [result_ptr[i] for i in range(length)]
+        result = [result_ptr[i] for i in range(int(samplingRate.value))]
         print("Result:", result)
 
     def test_create_read(self):
@@ -106,8 +116,5 @@ class Testing():
 
 if __name__ == "__main__":
     test = Testing("library.c")
-    #test.test_lerp()
-    #test.test_unify()
-    #test.test_createSineArray()
-    test.test_create_read()
+    test.test_all()
     
