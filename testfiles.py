@@ -2,13 +2,22 @@ from ctypes import *
 import os, math, random
 
 class Testing():
-    def __init__(self, filename:str):
+    def __init__(self, filename:str, iterations:int=50):
         """creates an co (coperative object) file from a c file\n
         @filename: name of the c file in current working directory
         """
         os.system(f"gcc -fPIC -shared -o ./{filename}o ./{filename}")
         self.filename = filename
         self.sharedfilename = f"{filename}o"
+        self.iterations = iterations
+
+    def lerp(self, a, b, t):
+        return a + t * (b - a)
+    
+    def lerp_2d(self, p1, p2, t):
+        x = self.lerp(p1[0], p2[0], t)
+        y = self.lerp(p1[1], p2[1], t)
+        return (x, y)
 
     def test_all(self):
         """runs all tests"""
@@ -16,11 +25,13 @@ class Testing():
         print("testing lerp...")
         self.test_lerp()
         print("\n###################################\n")
+        print("testing lerp2D...")
+        self.test_lerp_2d()
+        print("\n###################################\n")
         print("testing unify...")
         self.test_unify()
         print("\n###################################\n")
         print("testing createSineArray...")
-        print (f"test für sinus ist {self.test_createSineArray()}") 
         print("\n###################################\n")
         print("testing create and read array file...")
         self.test_create_read()
@@ -37,6 +48,40 @@ class Testing():
         print(fnc.lerp(-10,20,0.5))
         print(fnc.lerp(10,-20,0.5))
         print(fnc.lerp(10,20,-15))
+
+    def test_lerp_2d(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.lerp2DWithX.argtypes = [
+            POINTER(c_double),
+            POINTER(c_double), 
+            c_double          
+        ]
+        fnc.lerp2DWithX.restype = POINTER(c_double)
+
+        for i in range(self.iterations):
+            a = (random.uniform(-100,100), random.uniform(-100,100))
+            b = (random.uniform(-100,100), random.uniform(-100,100))
+            t = random.uniform(0,1)
+
+            a_arr = (c_double * 2)(a[0], a[1])
+            b_arr = (c_double * 2)(b[0], b[1])
+            
+            res_ptr = fnc.lerp2DWithX(a_arr, b_arr, t)
+            res_c = (res_ptr[0], res_ptr[1])
+            res_py = self.lerp_2d(a, b, t)
+
+            # Vergleich
+            diff_x = abs(res_c[0] - res_py[0])
+            diff_y = abs(res_c[1] - res_py[1])
+            tol = 0.005
+            assert diff_x < tol and diff_y < tol, (
+                f"Fehler bei Test {i}: "
+                f"C={res_c}, Python={res_py}, Δx={diff_x}, Δy={diff_y}"
+                f"{a}, {b}, t={t}"
+            )
+        
+        print("test completed successfully")
+
 
     def test_unify(self):
         """tests the unify function in library.co"""
@@ -84,12 +129,13 @@ class Testing():
             abweichung = abs(result_ptr[i] - sinval)
             averageAbweichung += abweichung
             averageAbweichung /= 2
-            if abweichung > 0.002: 
-                isValid = False
-                print(f"{i}: {result_ptr[i]},  (abweichung: {abweichung}) zu groß!")
-        print(f"average abweichung: {averageAbweichung}")
-        return isValid
-    
+            assert abweichung > 0.002, (
+                f"{i}: {result_ptr[i]},  (abweichung: {abweichung}) zu groß!"
+            )
+        
+        print(f"average abweichung: {averageAbweichung}\nTest completed successfully.")
+
+
     def test_create_read(self):
         """tests the createArrayFile and readSavedArrayFile functions
         prints out number of generated values, sucess of writing and if generated
@@ -104,7 +150,7 @@ class Testing():
         #x ist liste mit nummern die getestet werden, ggf, auch über sinarray erstellbar
         x = list()
         for _ in range(random.randint(1000,10000)):
-            x.append(random.randint(-10000,10000))
+            x.append(random.uniform(-10000,10000))
         
         numbers = list(x)
         length = len(numbers)
@@ -119,9 +165,9 @@ class Testing():
             fnc.readSavedArrayFile.restype = POINTER(c_double)
             result_ptr = fnc.readSavedArrayFile()
             result = [result_ptr[i] for i in range(length)]
-            print("Reading matches original:", bool(result == x))
+            print("Reading matches generated values:", bool(result == x))
 
 
 if __name__ == "__main__":
     test = Testing("library.c")
-    test.test_all()   
+    test.test_all()
