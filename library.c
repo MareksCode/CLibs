@@ -71,17 +71,21 @@ int createArrayFile(double *array, int arrayLength) {
     return 1;
 }
 
+typedef struct node {
+    char data;
+    struct node* next;
+    struct node* prev;
+} Node;
+
 //reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed array
 double* readSavedArrayFile() {
-    FILE *filePointer;
-
-    FILE *pointerToBeginning = filePointer;
-
-    filePointer = fopen("./savedArray.txt", "r");
+    FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
-        return 0;
+        return NULL;
     }
+
+    FILE *pointerToBeginning = filePointer;
 
     int length = 0; //count all doubles
     char ch;
@@ -94,30 +98,63 @@ double* readSavedArrayFile() {
     double *savedArray = calloc(length, sizeof(double));
     if (savedArray == NULL) {
         printf("calloc failed\n");
-        return 0;
+        fclose(filePointer);
+        return NULL;
     }
 
     filePointer = pointerToBeginning; //reset reading head
 
-    char *currentString;
-    int currentStringLength = 0;
-    int currentDoubleInSavedArray = 0;
+    //Linkin Park list
+    Node *head = malloc(sizeof(Node));
+    head->next = NULL;
+    head->prev = NULL;
+
+    int doubleCounter = 0;
     while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
-        currentString = realloc(currentString, currentStringLength + 1); //dynamically load new string of double
-        currentString[currentStringLength] = ch;
+        int currentNumberLength = 0;
 
-        if (ch == '\n') { //end of the double was reached
-            //parse string & put into finished array
-            char *endPointer = &currentString[currentStringLength];
-            savedArray[currentDoubleInSavedArray] = strtod(currentString, &endPointer);
+        Node *newNode = malloc(sizeof(Node));
+        newNode->data = ch;
+        newNode->next = NULL;
 
-            //reset string values
-            free(currentString);
-            currentString = 0;
-        } else {
-            currentStringLength += 1;
+        Node *previousNode = head;
+        while (previousNode->next != NULL) {
+            previousNode = previousNode->next;
+            currentNumberLength+=1;
+        }
+
+        previousNode->next = newNode;
+        newNode->prev = previousNode;
+
+        if (ch == '\n') {
+            //write char in array
+            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
+
+            Node *iterator = head;
+            do {
+                iterator = iterator->next;
+                doubleAsString[currentNumberLength] = iterator->data;
+            } while (iterator->next != NULL); //to include the last char
+
+            savedArray[doubleCounter] = strtod(doubleAsString, NULL);
+            doubleCounter += 1;
+
+            free(doubleAsString);
+
+            //reduce the linkedlist to it's header again
+            Node *nextNode = newNode;
+            Node *deletingNode;
+            while (nextNode->prev != NULL) {
+                deletingNode = nextNode;
+                nextNode = nextNode->prev;
+
+                free(deletingNode);
+            }
+            head->next = NULL;
         }
     }
+
+    free(head);
 
     fclose(filePointer);
     return savedArray;
