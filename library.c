@@ -186,7 +186,7 @@ double* readSavedArrayFile() {
 
             free(doubleAsString);
 
-            //reduce the linkedlist to it's header again
+            //reduce the linkedlist to its header again
             Node *nextNode = newNode;
             Node *deletingNode;
             while (nextNode->prev != NULL) {
