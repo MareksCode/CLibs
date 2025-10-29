@@ -7,7 +7,7 @@
 #include <string.h>
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
-double lerp(double x1, double x2, double alpha) {
+double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) { //ask prof if this is needed
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
         exit(3);
@@ -17,15 +17,15 @@ double lerp(double x1, double x2, double alpha) {
     return (x1 + alpha*diff);
 }
 
-double *lerp2D(double *p1, double *p2, double alpha) {
+double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
     double *resultingPoint = calloc(2, sizeof(double));
-    resultingPoint[0] = lerp(p1[0], p2[0], alpha);
-    resultingPoint[1] = lerp(p1[1], p2[1], alpha);
+    resultingPoint[0] = interpolateDigitsByAlpha(p1[0], p2[0], alpha);
+    resultingPoint[1] = interpolateDigitsByAlpha(p1[1], p2[1], alpha);
 
     return resultingPoint;
 }
 
-double *lerp2DWithX(double *p1, double *p2, double x) {
+double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
     double x1 = p1[0];
     double x2 = p2[0];
 
@@ -34,16 +34,16 @@ double *lerp2DWithX(double *p1, double *p2, double x) {
 
     if (x1 <= x2) {
         alpha = (x-x1)/fullLength;
-        return lerp2D(p1,p2,alpha);
+        return interpolate2DPointsByAlpha(p1,p2,alpha);
     } else {
         alpha = (x-x2)/fullLength;
-        return lerp2D(p2,p1,alpha);
+        return interpolate2DPointsByAlpha(p2,p1,alpha);
     }
 }
 
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
 //For easy usability, it returns a pointer to the inputted array so you can wrap your array call
-double *scaled(double *numbers, int numberArrayLength, double minimum, double alpha) {
+double *scaleNumbersInArray(double *numbers, int numberArrayLength, double minimum, double alpha) {
     for (int i = 0; i < numberArrayLength; i++) {
         numbers[i] *= alpha;
         if (numbers[i] < minimum) {
@@ -101,7 +101,8 @@ typedef struct node {
     struct node* prev;
 } Node;
 
-//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed array
+//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed
+//NOTE: this can be done in one read process instead of two, this will probably get criticised by the prof
 double* readSavedArrayFile() {
     FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
