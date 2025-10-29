@@ -116,15 +116,19 @@ int createArrayFile(double *array, int arrayLength) {
     return 1;
 }
 
-typedef struct node {
+typedef struct Node {
     char data;
-    struct node* next;
-    struct node* prev;
+    struct Node* next;
+    struct Node* prev;
 } Node;
+typedef struct NumNode {
+    double data;
+    struct NumNode* next;
+    struct NumNode* prev;
+} NumNode;
 
-//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed
-//NOTE: this can be done in one read process instead of two, this will probably get criticised by the prof
-double* readSavedArrayFile() {
+//legacy function //TODO: REMOVE
+double* readSavedArrayFileOLD() {
     FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
@@ -208,10 +212,120 @@ double* readSavedArrayFile() {
     return savedArray;
 }
 
-int main() { //test for write & read file
-    double array[] = {1,2,3,4,5,6,7,8,9,10};
+//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed numbersequence (put in an array)
+double* readSavedArrayFile() {
+    FILE *filePointer = fopen("./savedArray.txt", "r");
+    if (filePointer == NULL) {
+        printf("Could not open file\n");
+        return NULL;
+    }
+
+    //Linkin Park list
+    Node *numberReadHead = malloc(sizeof(Node));
+    numberReadHead->next = NULL;
+    numberReadHead->prev = NULL;
+
+    NumNode *doubleArrayHead = malloc(sizeof(NumNode));
+    doubleArrayHead->next = NULL;
+    doubleArrayHead->prev = NULL;
+
+    char ch;
+
+    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
+        int currentNumberLength = 0;
+
+        //create tmp node for the linked list that saves the current double string
+        Node *newNode = malloc(sizeof(Node));
+        newNode->data = ch;
+        newNode->next = NULL;
+
+        //get the current string length & the next node to add the char to
+        Node *previousNode = numberReadHead;
+        while (previousNode->next != NULL) {
+            previousNode = previousNode->next;
+            currentNumberLength+=1;
+        }
+
+        previousNode->next = newNode;
+        newNode->prev = previousNode;
+
+        //string finished? Parse string to double & reset the numberReadHead linked list
+        if (ch == '\n') {
+            //write chars in array
+            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
+
+            int i = 0;
+            Node *iterator = numberReadHead;
+            while (iterator->next != NULL) {
+                iterator = iterator->next;
+                doubleAsString[i] = iterator->data;
+                i+=1;
+            }
+
+            //parse the string to a double and add it to the final linked list
+            double parsedResult = strtod(doubleAsString, NULL);
+            NumNode *lastDoubleArrayNode = doubleArrayHead;
+            while (lastDoubleArrayNode->next != NULL) {
+                lastDoubleArrayNode = lastDoubleArrayNode->next;
+            }
+
+            NumNode *newDoubleArrayNode = malloc(sizeof(NumNode));
+            newDoubleArrayNode->data = parsedResult;
+            newDoubleArrayNode->next = NULL;
+            newDoubleArrayNode->prev = lastDoubleArrayNode;
+            lastDoubleArrayNode->next = newDoubleArrayNode;
+
+            free(doubleAsString);
+
+            //reduce the linkedlist to its header again
+            Node *nextNode = newNode;
+            Node *deletingNode;
+            while (nextNode->prev != NULL) {
+                deletingNode = nextNode;
+                nextNode = nextNode->prev;
+
+                free(deletingNode);
+            }
+            numberReadHead->next = NULL;
+        }
+    }
+
+    free(numberReadHead);
+
+    //Create an array using the doubleArray linked list
+    int arrayLength = 0;
+    NumNode *iterator = doubleArrayHead;
+    while (iterator->next != NULL) {
+        arrayLength+=1;
+        iterator = iterator->next;
+    }
+
+    double *savedArray = calloc(arrayLength, sizeof(double));
+
+    //write in the array & delete linked list
+    while (iterator->prev != NULL) {
+        arrayLength-=1;
+        savedArray[arrayLength] = iterator->data;
+
+        NumNode *thisNode = iterator;
+        iterator = iterator->prev;
+
+        free(thisNode);
+    }
+
+    free(doubleArrayHead);
+
+    fclose(filePointer);
+    return savedArray;
+}
+
+int main() { //test for write & read file //TODO: REMOVE
+    double array[] = {1.03,2.5,3.44,4.123,5,691,70,80.9999,9.999,10.1};
     createArrayFile(array, 10);
     double* a = readSavedArrayFile();
+    for (int i = 0; i < 10; i++) {
+        printf("%f\n", a[i]);
+    }
     free(a);
     return 0;
 }
