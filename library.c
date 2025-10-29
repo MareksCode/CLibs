@@ -10,7 +10,7 @@
 double lerp(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) { //ask prof if this is needed
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
-        alpha = 0.5;
+        exit(3);
     }
 
     double diff = x2-x1;
