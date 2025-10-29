@@ -19,8 +19,8 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
 
 double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
     double *resultingPoint = calloc(2, sizeof(double));
-    resultingPoint[0] = lerp(p1[0], p2[0], alpha);
-    resultingPoint[1] = lerp(p1[1], p2[1], alpha);
+    resultingPoint[0] = interpolateDigitsByAlpha(p1[0], p2[0], alpha);
+    resultingPoint[1] = interpolateDigitsByAlpha(p1[1], p2[1], alpha);
 
     return resultingPoint;
 }
@@ -34,10 +34,10 @@ double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
 
     if (x1 <= x2) {
         alpha = (x-x1)/fullLength;
-        return lerp2D(p1,p2,alpha);
+        return interpolate2DPointsByAlpha(p1,p2,alpha);
     } else {
         alpha = (x-x2)/fullLength;
-        return lerp2D(p2,p1,alpha);
+        return interpolate2DPointsByAlpha(p2,p1,alpha);
     }
 }
 
@@ -101,7 +101,8 @@ typedef struct node {
     struct node* prev;
 } Node;
 
-//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed array
+//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed
+//NOTE: this can be done in one read process instead of two, this will probably get criticised by the prof
 double* readSavedArrayFile() {
     FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
