@@ -108,6 +108,8 @@ class Testing():
             fnc.readSavedArrayFile.restype = POINTER(c_double)
             result_ptr = fnc.readSavedArrayFile()
             result = [result_ptr[i] for i in range(length)]
+            print(result[20:30])
+            print(x[20:30])
             print("Matches original:", result == x)
 
 
