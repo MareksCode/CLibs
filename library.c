@@ -8,7 +8,7 @@
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
-    if (alpha < 0 || alpha > 1) { //ask prof if this is needed
+    if (alpha < 0 || alpha > 1) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
         exit(3);
     }
@@ -62,6 +62,10 @@ double getYForXInterpolatedBetween2Points(double x1, double y1, double x2, doubl
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
 //For easy usability, it returns a pointer to the inputted array so you can wrap your array call
 double *scaleNumbersInArray(double *numbers, int numberArrayLength, double minimum, double alpha) {
+    if (numberArrayLength <= 0) {
+        exit(7);
+    }
+
     for (int i = 0; i < numberArrayLength; i++) {
         numbers[i] *= alpha;
         if (numbers[i] < minimum) {
@@ -80,7 +84,7 @@ double *createSineArray(double samplingRate, double amp) {
 
     if (sineArray == NULL) {
         printf("calloc failed\n");
-        return 0;
+        exit(8);
     }
 
     for (int i = 0; i < length; i+=1) {
@@ -94,7 +98,6 @@ double *createSineArray(double samplingRate, double amp) {
 //Returns 1 when everything worked, 0 if there was an error
 int createArrayFile(double *array, int arrayLength) {
     FILE *filePointer;
-
 
     filePointer = fopen("./savedArray.txt", "w");
 
