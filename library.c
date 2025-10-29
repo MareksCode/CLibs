@@ -17,12 +17,28 @@ double lerp(double x1, double x2, double alpha) {
     return (x1 + alpha*diff);
 }
 
-double *lerp2D(double *p1, double *p2, int alpha) {
+double *lerp2D(double *p1, double *p2, double alpha) {
     double *resultingPoint = calloc(2, sizeof(double));
     resultingPoint[0] = lerp(p1[0], p2[0], alpha);
     resultingPoint[1] = lerp(p1[1], p2[1], alpha);
 
     return resultingPoint;
+}
+
+double *lerp2DWithX(double *p1, double *p2, double x) {
+    double x1 = p1[0];
+    double x2 = p2[0];
+
+    double fullLength = fabs(x2 - x1);
+    double alpha = 0;
+
+    if (x1 <= x2) {
+        alpha = (x-x1)/fullLength;
+        return lerp2D(p1,p2,alpha);
+    } else {
+        alpha = (x-x2)/fullLength;
+        return lerp2D(p2,p1,alpha);
+    }
 }
 
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
