@@ -67,7 +67,7 @@ class Testing():
 
         fnc.createSineArray.restype = POINTER(c_double)
 
-        samplingRate = c_double(30)
+        samplingRate = c_double(10)
         amplitude = c_double(1.0)
         stepsize = (2*math.pi) / samplingRate.value
 
