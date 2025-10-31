@@ -174,5 +174,5 @@ class Testing():
 
 
 if __name__ == "__main__":
-    test = Testing("library.c")
+    test = Testing("MMS25_26.c")
     test.test_all()
