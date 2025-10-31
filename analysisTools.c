@@ -24,14 +24,14 @@ double getMinFromArray(double *array, int arrayLength) {
     return currentMin;
 }
 
-double getMaxFromArrayInRange(double *array, int arrayLength, int startX, int endX) {
+double getMaxFromArrayInRange(double *array, int startX, int endX) {
     int newArrayLength = endX - startX;
     double *newArrayStart = &array[startX];
 
     return getMaxFromArray(newArrayStart, newArrayLength);
 }
 
-double getMinFromArrayInRange(double *array, int arrayLength, int startX, int endX) {
+double getMinFromArrayInRange(double *array, int startX, int endX) {
     int newArrayLength = endX - startX;
     double *newArrayStart = &array[startX];
 
