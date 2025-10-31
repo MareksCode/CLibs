@@ -4,4 +4,6 @@ project(untitled2 C)
 set(CMAKE_C_STANDARD 99)
 
 add_library(untitled2 STATIC library.c
+        analysisTools.c
+        analysisTools.h
 )
