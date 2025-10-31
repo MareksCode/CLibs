@@ -172,7 +172,132 @@ class Testing():
         assert result==x, "file is not what should be in there!"
         print("test completed successfully")
 
+class Testing2():
+    def __init__(self, filename:str, iterations:int=50):
+        """creates an co (coperative object) file from a c file\n
+        @filename: name of the c file in current working directory
+        """
+        os.system(f"gcc -fPIC -shared -o ./{filename}o ./{filename}")
+        self.filename = filename
+        self.sharedfilename = f"{filename}o"
+        self.iterations = iterations
+        self.it_testarray=0
+
+    def test_all(self):
+        """runs all tests"""
+        print("\n###################################\n")
+        print(f"start test with {self.iterations} iterations per unit")
+        print("###################################\n")
+        print("testing maxFromArray...")
+        self.test_maxFromArray()
+        print("\n###################################\n")
+        print("testing minFromArray...")
+        self.test_minFromArray()
+        print("\n###################################\n")
+        print("testing maxFromArrayInRange...")
+        self.test_maxFromArrayRange()
+        print("\n###################################\n")
+        print("testing minFromArrayInRange...")
+        self.test_minFromArrayRange()
+        print("\n###################################\n")
+
+    def genTestArray(self, size:int):
+        match self.it_testarray:
+            case 0:
+                self.it_testarray += 1
+                return [0 for _ in range(size)]
+            case 1:
+                self.it_testarray += 1
+                return [i*-1 for i in range(size)]
+            case 2:
+                self.it_testarray += 1
+                return [i*(-1)**i for i in range(size)]
+            case 3:
+                return [random.uniform(-1000,1000) for _ in range(random.randint(1,size))]
+            case _:
+                self.it_testarray = 0
+
+    def test_maxFromArray(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMaxFromArray.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getMaxFromArray.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getMaxFromArray(c_array, length)
+            assert result == max(numbers), "Max value is incorrect!"
+
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_minFromArray(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMinFromArray.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getMinFromArray.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getMinFromArray(c_array, length)
+            assert result == min(numbers), f"Min value is incorrect! {result} != {min(numbers)}"
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_maxFromArrayRange(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMaxFromArrayInRange.argtypes = [
+            POINTER(c_double),
+            c_int,
+            c_int
+            ]
+        fnc.getMaxFromArrayInRange.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            minX = random.randint(0, length-2)
+            maxX = random.randint(minX+1, length-1)
+
+            result = fnc.getMaxFromArrayInRange(c_array, minX, maxX)
+            assert result == max(numbers[minX:maxX]), "Max value is incorrect!"
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_minFromArrayRange(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMinFromArrayInRange.argtypes = [
+            POINTER(c_double),
+            c_int,
+            c_int
+            ]
+        fnc.getMinFromArrayInRange.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            minX = random.randint(0, length-2)
+            maxX = random.randint(minX+1, length-1)
+
+            result = fnc.getMinFromArrayInRange(c_array, minX, maxX)
+            assert result == min(numbers[minX:maxX]), "Min value is incorrect!"
+        self.it_testarray = 0
+        print("test completed successfully.")
 
 if __name__ == "__main__":
-    test = Testing("library.c")
+    test = Testing2("analysisTools.c")#Testing("library.c")
     test.test_all()
