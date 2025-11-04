@@ -203,6 +203,13 @@ class Testing2():
         print("testing getArea...")
         self.test_getArea()
         print("\n###################################\n")
+        print("testing getAverage...")
+        self.test_getAverage()
+        print("\n###################################\n")
+        print("testing getVariance...")
+        self.test_getVariance()
+        print("\n###################################\n")
+
 
     def genTestArray(self, size:int):
         match self.it_testarray:
@@ -323,7 +330,50 @@ class Testing2():
         self.it_testarray = 0
         print("test completed successfully.")
 
-    
+    def test_getAverage(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getAverage.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getAverage.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getAverage(c_array, length)
+            abweichung = abs(result - sum(numbers)/length)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_getVariance(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getVariance.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getVariance.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            mean = sum(numbers)/length
+            variance_py = sum((x - mean) ** 2 for x in numbers) / length
+
+            result = fnc.getVariance(c_array, length)
+            abweichung = abs(result - variance_py)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
 
 
 if __name__ == "__main__":
