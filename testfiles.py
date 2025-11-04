@@ -209,6 +209,9 @@ class Testing2():
         print("testing getVariance...")
         self.test_getVariance()
         print("\n###################################\n")
+        print("testing getMedian...")
+        self.test_getMedian()
+        print("\n###################################\n")
 
 
     def genTestArray(self, size:int):
@@ -375,7 +378,30 @@ class Testing2():
         self.it_testarray = 0
         print("test completed successfully.")
 
+    def test_getMedian(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMedian.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getMedian.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1001)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
 
+            sorted_numbers = sorted(numbers)
+            median_py = sorted_numbers[length // 2] if length % 2 == 1 else \
+                ((sorted_numbers[length // 2] + sorted_numbers[length // 2 + 1])) / 2
+
+            result = fnc.getMedian(c_array, length)
+            abweichung = abs(result - median_py)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß! {result} != {median_py}"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
 if __name__ == "__main__":
     test = Testing2("analysisTools.c")#Testing("library.c")
     test.test_all()
