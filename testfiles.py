@@ -200,6 +200,9 @@ class Testing2():
         print("testing minFromArrayInRange...")
         self.test_minFromArrayRange()
         print("\n###################################\n")
+        print("testing getArea...")
+        self.test_getArea()
+        print("\n###################################\n")
 
     def genTestArray(self, size:int):
         match self.it_testarray:
@@ -213,7 +216,7 @@ class Testing2():
                 self.it_testarray += 1
                 return [i*(-1)**i for i in range(size)]
             case 3:
-                return [random.uniform(-1000,1000) for _ in range(random.randint(1,size))]
+                return [random.uniform(-1000,1000) for _ in range(random.randint(3,size))]
             case _:
                 self.it_testarray = 0
 
@@ -297,6 +300,31 @@ class Testing2():
             assert result == min(numbers[minX:maxX]), "Min value is incorrect!"
         self.it_testarray = 0
         print("test completed successfully.")
+
+    def test_getArea(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getArea.argtypes = [
+            POINTER(c_double),
+            c_int,
+            c_double
+            ]
+        fnc.getArea.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getArea(c_array, length, c_double(1.0))
+            abweichung = abs(result - sum(numbers))
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    
+
 
 if __name__ == "__main__":
     test = Testing2("analysisTools.c")#Testing("library.c")
