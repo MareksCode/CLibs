@@ -7,6 +7,7 @@
 #include <string.h>
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
+//Note: renam to scale
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
@@ -61,6 +62,9 @@ double getYForXInterpolatedBetween2Points(double x1, double y1, double x2, doubl
 
 //Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
 //For easy usability, it returns a pointer to the inputted array so you can wrap your array call
+//TODO: zielminimum: kleinster wert wird angegebens zielminimum und darum wirds skaliert
+// scaleValuesInArray
+//PARAMS: int valueArrayLength, double *values, double min, double alpha
 double *scaleNumbersInArray(double *numbers, int numberArrayLength, double minimum, double alpha) {
     if (numberArrayLength <= 0) {
         exit(7);
@@ -77,6 +81,8 @@ double *scaleNumbersInArray(double *numbers, int numberArrayLength, double minim
 }
 
 //creates a new array picturing an entire sine wave multiplied by <amp>. The number of values is determined by <samplingRate> (how many values should be calculated)
+//TODO: nicht nur eine sinuskurve sondern eine länge x darstellen
+//PARAMS: int totalSamples, int samplesPerPeriod, double amp
 double *createSineArray(double samplingRate, double amp) {
     double stepsize = (3.1415*2) / samplingRate; //forced cast
     int length = samplingRate + 1;
@@ -96,7 +102,8 @@ double *createSineArray(double samplingRate, double amp) {
 
 //Takes a pointer to an array and creates a savedArray.txt containing all the values
 //Returns 1 when everything worked, 0 if there was an error
-int createArrayFile(double *array, int arrayLength) {
+// writeArrayFile
+int createArrayFile(char *filePath, double *array, int arrayLength) {
     FILE *filePointer;
 
     filePointer = fopen("./savedArray.txt", "w");
@@ -213,6 +220,7 @@ double* readSavedArrayFileOLD() {
 }
 
 //reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed numbersequence (put in an array)
+//int readArrayFile(char* filePath, double *values)
 double* readSavedArrayFile() {
     FILE *filePointer = fopen("./savedArray.txt", "r");
     if (filePointer == NULL) {
