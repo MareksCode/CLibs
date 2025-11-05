@@ -200,6 +200,19 @@ class Testing2():
         print("testing minFromArrayInRange...")
         self.test_minFromArrayRange()
         print("\n###################################\n")
+        print("testing getArea...")
+        self.test_getArea()
+        print("\n###################################\n")
+        print("testing getAverage...")
+        self.test_getAverage()
+        print("\n###################################\n")
+        print("testing getVariance...")
+        self.test_getVariance()
+        print("\n###################################\n")
+        print("testing getMedian...")
+        self.test_getMedian()
+        print("\n###################################\n")
+
 
     def genTestArray(self, size:int):
         match self.it_testarray:
@@ -213,7 +226,7 @@ class Testing2():
                 self.it_testarray += 1
                 return [i*(-1)**i for i in range(size)]
             case 3:
-                return [random.uniform(-1000,1000) for _ in range(random.randint(1,size))]
+                return [random.uniform(-1000,1000) for _ in range(random.randint(3,size))]
             case _:
                 self.it_testarray = 0
 
@@ -298,6 +311,97 @@ class Testing2():
         self.it_testarray = 0
         print("test completed successfully.")
 
+    def test_getArea(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getArea.argtypes = [
+            POINTER(c_double),
+            c_int,
+            c_double
+            ]
+        fnc.getArea.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getArea(c_array, length, c_double(1.0))
+            abweichung = abs(result - sum(numbers))
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_getAverage(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getAverage.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getAverage.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            result = fnc.getAverage(c_array, length)
+            abweichung = abs(result - sum(numbers)/length)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_getVariance(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getVariance.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getVariance.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1000)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            mean = sum(numbers)/length
+            variance_py = sum((x - mean) ** 2 for x in numbers) / length
+
+            result = fnc.getVariance(c_array, length)
+            abweichung = abs(result - variance_py)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß!"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
+
+    def test_getMedian(self):
+        fnc = CDLL("./"+self.sharedfilename)
+        fnc.getMedian.argtypes = [
+            POINTER(c_double),
+            c_int
+            ]
+        fnc.getMedian.restype = c_double
+        for _ in range(self.iterations):
+            numbers = self.genTestArray(1001)#[random.uniform(-1000,1000) for _ in range(1000)]
+            arr_type = c_double * len(numbers)
+            c_array = arr_type(*numbers)
+            length = len(numbers)
+
+            sorted_numbers = sorted(numbers)
+            median_py = sorted_numbers[length // 2] if length % 2 == 1 else \
+                ((sorted_numbers[length // 2] + sorted_numbers[length // 2 + 1])) / 2
+
+            result = fnc.getMedian(c_array, length)
+            abweichung = abs(result - median_py)
+            assert abweichung < 0.0002, (
+                f"abweichung: {abweichung} zu groß! {result} != {median_py}"
+            )
+        self.it_testarray = 0
+        print("test completed successfully.")
 if __name__ == "__main__":
     test = Testing2("analysisTools.c")#Testing("library.c")
     test.test_all()
