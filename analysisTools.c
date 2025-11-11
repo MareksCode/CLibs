@@ -2,6 +2,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //returns the maximum value of a given array
 double getMaxFromArray(double *array, int arrayLength) {
@@ -105,36 +106,138 @@ double getMedian(double *array, int arraySize) {
     return array[(int)(arraySize / 2 + 0.5)];
 }
 
+typedef struct Node {
+    double sample;
+    int sampleCount;
+    struct Node* next;
+} Node;
+typedef struct SampleBlock {
+    double sample;
+    int sampleCount;
+} SampleBlock;
+
 //prints a Histogram representing the given array.
 //the biggest line has a size of <consoleWidth>
 //the smallest line has a size of 0
-void createHistogram(double *array, int arrayLength, int consoleWidth) {
-    double max = getMaxFromArray(array, arrayLength);
-    double min = getMinFromArray(array, arrayLength);
-    double biggestDiff = max-min;
+void createVisualisation(SampleBlock *array, int arrayLength, int consoleWidth, double BiggestSample, double SmallestSample) {
+    double biggestDiff = BiggestSample-SmallestSample;
 
     printf("Histogram:\n-------\n");
 
     for (int i = 0; i < arrayLength; i++) {
-        double ratioFromMinToMax = (array[i]-min)/biggestDiff;
+        double ratioFromMinToMax = (array[i].sampleCount-SmallestSample)/biggestDiff;
         int visualSize = (int)round(consoleWidth * ratioFromMinToMax);
 
-        printf("%03i: ", i);
+        printf("%03f: ", array[i].sample);
         for (int j = 0; j < visualSize; j++) {
             printf("|");
         }
 
-        printf(" : %f\n", array[i]);
+        printf(" : %d\n", array[i].sampleCount);
     }
     printf("-------\n");
+}
+
+void incrementSampleInLinkedList(Node *head, double sample) {
+    Node *nextNode = head->next;
+    Node *previousNode = head;
+    while (nextNode != NULL) {
+        if (nextNode->sample == sample) {
+            nextNode->sampleCount++;
+            return; //A member of the linkedlist was incremented
+        }
+        previousNode = nextNode;
+        nextNode = nextNode->next;
+    }
+
+    //a new member has to be added
+    Node *newNode = malloc(sizeof(Node));
+
+    if (newNode == NULL) { //TODO: schauen ob hier noch der speicher der liste freigegeben werden muss
+        printf("Malloc failed\n");
+        exit(998);
+    }
+
+    previousNode->next = newNode;
+    newNode->sample = sample;
+    newNode->next = NULL;
+    newNode->sampleCount = 1;
+}
+void createHistogram(double *array, int arrayLength, int consoleWidth) {
+    Node *head = malloc(sizeof(Node));
+    head->next = NULL;
+
+    if (head == NULL) {
+        printf("Malloc failed\n");
+        exit(999);
+    }
+
+    printf("setting up linked list\n");
+    //set up linked list
+    for (int i = 0; i < arrayLength; i++) {
+        incrementSampleInLinkedList(head, array[i]);
+    }
+
+    printf("converting\n");
+    //convert linked list into an array
+    int newArraySize = 0;
+    Node *currentNode = head;
+    while (currentNode != NULL) {
+        currentNode = currentNode->next;
+        newArraySize++;
+    }
+    SampleBlock *histogramArray = calloc(newArraySize, sizeof(SampleBlock));
+    if (histogramArray == NULL) {
+        printf("Calloc failed\n");
+        exit(997);
+    }
+
+    printf("finding\n");
+    currentNode = head;
+    int i = 0;
+    double biggestSample = -INFINITY;
+    double smallestSample = INFINITY;
+    while (currentNode != NULL) {
+        currentNode = currentNode->next;
+        if (currentNode != NULL) {
+            histogramArray[i].sample = currentNode->sample;
+            histogramArray[i].sampleCount = currentNode->sampleCount;
+            i++;
+
+            if (biggestSample < currentNode->sample) {
+                biggestSample = currentNode->sample;
+            }
+            if (smallestSample > currentNode->sample) {
+                smallestSample = currentNode->sample;
+            }
+        }
+    }
+
+    printf("clearing\n");
+    //clear the linkedList
+    Node *deletingNode = head;
+    Node *nextNode = head->next;
+    while (nextNode != NULL) {
+        free(deletingNode);
+        deletingNode = nextNode;
+        nextNode = deletingNode->next;
+    }
+    free(deletingNode);
+
+    //visualize
+    printf("printing\n");
+    createVisualisation(histogramArray, newArraySize, consoleWidth, biggestSample, smallestSample);
+
+    //free
+    free(histogramArray);
 }
 
 void createEntropy() {
 
 }
 
-int main() { //varianz test
-    double arr[] = {25,36,37,28,100,30,94};
+int main() { //test
+    double arr[] = {1,2,2,3,3,3,4,4,4,5,5,5,5,5,6,6,6,7,8,8,9};
 
     createHistogram(arr, 7, 60);
 }
