@@ -172,13 +172,11 @@ void createHistogram(double *array, int arrayLength, int consoleWidth) {
         exit(999);
     }
 
-    printf("setting up linked list\n");
     //set up linked list
     for (int i = 0; i < arrayLength; i++) {
         incrementSampleInLinkedList(head, array[i]);
     }
 
-    printf("converting\n");
     //convert linked list into an array
     int newArraySize = 0;
     Node *currentNode = head;
@@ -192,7 +190,6 @@ void createHistogram(double *array, int arrayLength, int consoleWidth) {
         exit(997);
     }
 
-    printf("finding\n");
     currentNode = head;
     int i = 0;
     double biggestSample = -INFINITY;
@@ -213,7 +210,6 @@ void createHistogram(double *array, int arrayLength, int consoleWidth) {
         }
     }
 
-    printf("clearing\n");
     //clear the linkedList
     Node *deletingNode = head;
     Node *nextNode = head->next;
@@ -225,7 +221,6 @@ void createHistogram(double *array, int arrayLength, int consoleWidth) {
     free(deletingNode);
 
     //visualize
-    printf("printing\n");
     createVisualisation(histogramArray, newArraySize, consoleWidth, biggestSample, smallestSample);
 
     //free
@@ -237,7 +232,9 @@ void createEntropy() {
 }
 
 int main() { //test
-    double arr[] = {1,2,2,3,3,3,4,4,4,5,5,5,5,5,6,6,6,7,8,8,9};
+    double arr[] = {
+        1,2.234,2.234,3.22,3.22,3.22,4.01,4.01,4.01,5,5,5,5,5,6.76,6.76,6.76,7.76,8,8,9.999999
+    };
 
-    createHistogram(arr, 7, 60);
+    createHistogram(arr, 21, 60);
 }
