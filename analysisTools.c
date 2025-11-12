@@ -163,6 +163,8 @@ void incrementSampleInLinkedList(Node *head, double sample) {
     newNode->next = NULL;
     newNode->sampleCount = 1;
 }
+
+//TODO: intervallgrenzen einstellen, anzagl der bins wird gebraucht
 void createHistogram(double *array, int arrayLength, int consoleWidth) {
     Node *head = malloc(sizeof(Node));
     head->next = NULL;
