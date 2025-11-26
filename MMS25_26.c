@@ -100,13 +100,12 @@ double *createSineArray(double samplingRate, double amp) {
     return sineArray;
 }
 
-//Takes a pointer to an array and creates a savedArray.txt containing all the values
+//Takes a pointer to an array and creates a <filePath.txt> containing all the values
 //Returns 1 when everything worked, 0 if there was an error
-// writeArrayFile
-int createArrayFile(char *filePath, double *array, int arrayLength) {
+int writeArrayFile(char *filePath, double *array, int arrayLength) {
     FILE *filePointer;
 
-    filePointer = fopen("./savedArray.txt", "w");
+    filePointer = fopen(filePath, "w");
 
     if (filePointer == NULL) {
         printf("Error creating new file\n");
@@ -219,13 +218,12 @@ double* readSavedArrayFileOLD() {
     return savedArray;
 }
 
-//reads a "savedArray.txt" in the parent directory and returns a pointer to the parsed numbersequence (put in an array)
-//int readArrayFile(char* filePath, double *values)
-double* readSavedArrayFile() {
-    FILE *filePointer = fopen("./savedArray.txt", "r");
+//reads <filePath> and returns the array length of the passed array to the parsed numbersequence
+int readArrayFile(char* filePath, double *values) {
+    FILE *filePointer = fopen(filePath, "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
-        return NULL;
+        return -1;
     }
 
     //Linkin Park list
@@ -308,12 +306,19 @@ double* readSavedArrayFile() {
         iterator = iterator->next;
     }
 
-    double *savedArray = calloc(arrayLength, sizeof(double));
+    values = realloc(values, sizeof(double) * arrayLength);
+
+    if (values == NULL) {
+        free(values);
+        fclose(filePointer);
+        printf("realloc failed\n");
+        return -2;
+    }
 
     //write in the array & delete linked list
     while (iterator->prev != NULL) {
         arrayLength-=1;
-        savedArray[arrayLength] = iterator->data;
+        values[arrayLength] = iterator->data;
 
         NumNode *thisNode = iterator;
         iterator = iterator->prev;
@@ -324,7 +329,7 @@ double* readSavedArrayFile() {
     free(doubleArrayHead);
 
     fclose(filePointer);
-    return savedArray;
+    return arrayLength;
 }
 
 int main() { //test for write & read file //TODO: REMOVE
