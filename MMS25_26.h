@@ -3,7 +3,7 @@
 #define BLOCK_SIZE 500
 
 typedef struct {
-    int binCount;//-1
+    int numberOfBins;//-1
     int *bins;//0
     double minimum;//0
     double maximum;//0
@@ -18,7 +18,7 @@ typedef struct {
 } LocalExtrema;
 
 typedef struct {
-    int sampleCount;
+    int numberOfSamples;
     double *samples;
     double area;
     double mean;
@@ -35,13 +35,13 @@ MMSignal *createSignal_array(int valueArrayLength, double *values);
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
 void writeSignal(MMSignal *In, char * fileName);
-MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amp);
+MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude);
 
 //AUFGABE 2
-int *getHistogram(int valueCount, double *values, int numBins);
+int *getHistogram(int numberOfValues, double *values, int numberOfBins);
 Histogram *createHistogram_empty();
-Histogram *createHistogram_bins(int binCount);
-Histogram *createHistogram_array(int numValues, double *values, int numBins);
+Histogram *createHistogram_bins(int numberOfBins);
+Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins);
 void deleteHistogram(Histogram *In);
 double computeArea(MMSignal *In);
 double computeMean(MMSignal *In);
