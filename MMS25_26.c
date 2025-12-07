@@ -45,8 +45,8 @@ double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
 }
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
-double getYForXInterpolatedBetween2Points(double x1, double y1, double x2, double y2, double x) {
-    if (x > x2 || x < x1) {
+double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
+    if (xb > x2 || xb < x1) {
         exit(6);
     }
 
@@ -55,35 +55,37 @@ double getYForXInterpolatedBetween2Points(double x1, double y1, double x2, doubl
         smallerX = x2;
     }
 
-    double alpha = (x-smallerX)/fabs(x1-x2);
+    double alpha = (xb-smallerX)/fabs(x1-x2);
 
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
-//Takes an array <numbers> with <numberArrayLength> as the length and scales every value by <alpha>. Every number gets set to <minimum> as soon as it's smaller
-//For easy usability, it returns a pointer to the inputted array so you can wrap your array call
-//TODO: zielminimum: kleinster wert wird angegebens zielminimum und darum wirds skaliert
-// scaleValuesInArray
-//PARAMS: int valueArrayLength, double *values, double min, double alpha
-double *scaleNumbersInArray(double *numbers, int numberArrayLength, double minimum, double alpha) {
-    if (numberArrayLength <= 0) {
+//TODO: nochmal nachfragen
+double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
+    if (numberOfValues <= 0) {
         exit(7);
     }
 
-    for (int i = 0; i < numberArrayLength; i++) {
-        numbers[i] *= alpha;
-        if (numbers[i] < minimum) {
-            numbers[i] = minimum;
+    double minimumInArray = INFINITY;
+    for (int i = 0; i< numberOfValues; i++) {
+        if (values[i]<minimumInArray) {
+            minimumInArray = values[i];
         }
     }
 
-    return numbers;
+    double newScaleFactor = minimumInArray/min;
+
+    printf("SCALEFACTOR: %f / %f", newScaleFactor, minimumInArray*newScaleFactor);
+
+    for (int i = 0; i< numberOfValues; i++) {
+        values[i]*= values[i] * newScaleFactor;
+    }
+
+    return values;
 }
 
-//creates a new array picturing an entire sine wave multiplied by <amp>. The number of values is determined by <samplingRate> (how many values should be calculated)
-//TODO: nicht nur eine sinuskurve sondern eine länge x darstellen
-//PARAMS: int totalSamples, int samplesPerPeriod, double amp
-double *createSineArray(double samplingRate, double amp) {
+//TODO
+double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
     double stepsize = (3.1415*2) / samplingRate; //forced cast
     int length = samplingRate + 1;
     double *sineArray = calloc(length, sizeof(double));
@@ -133,93 +135,8 @@ typedef struct NumNode {
     struct NumNode* prev;
 } NumNode;
 
-//legacy function //TODO: REMOVE
-double* readSavedArrayFileOLD() {
-    FILE *filePointer = fopen("./savedArray.txt", "r");
-    if (filePointer == NULL) {
-        printf("Could not open file\n");
-        return NULL;
-    }
-
-    int length = 0; //count all doubles
-    char ch;
-    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
-        if (ch == '\n') {
-            length += 1;
-        }
-    }
-
-    double *savedArray = calloc(length, sizeof(double));
-    if (savedArray == NULL) {
-        printf("calloc failed\n");
-        fclose(filePointer);
-        return NULL;
-    }
-
-    rewind(filePointer);
-
-    //Linkin Park list
-    Node *head = malloc(sizeof(Node));
-    head->next = NULL;
-    head->prev = NULL;
-
-    int doubleCounter = 0;
-
-    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
-        int currentNumberLength = 0;
-
-        Node *newNode = malloc(sizeof(Node));
-        newNode->data = ch;
-        newNode->next = NULL;
-
-        Node *previousNode = head;
-        while (previousNode->next != NULL) {
-            previousNode = previousNode->next;
-            currentNumberLength+=1;
-        }
-
-        previousNode->next = newNode;
-        newNode->prev = previousNode;
-
-        if (ch == '\n') {
-            //write char in array
-            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
-
-            int i = 0;
-            Node *iterator = head;
-            do {
-                //printf("char: %c\n", iterator->data);
-                iterator = iterator->next;
-                doubleAsString[i] = iterator->data;
-                i+=1;
-            } while (iterator->next != NULL); //to include the last char
-
-            savedArray[doubleCounter] = strtod(doubleAsString, NULL);
-            doubleCounter += 1;
-
-            free(doubleAsString);
-
-            //reduce the linkedlist to its header again
-            Node *nextNode = newNode;
-            Node *deletingNode;
-            while (nextNode->prev != NULL) {
-                deletingNode = nextNode;
-                nextNode = nextNode->prev;
-
-                free(deletingNode);
-            }
-            head->next = NULL;
-        }
-    }
-
-    free(head);
-
-    fclose(filePointer);
-    return savedArray;
-}
-
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
-int readArrayFile(char* filePath, double *values) {
+int readArrayFile(char *fileName, double *value) {
     FILE *filePointer = fopen(filePath, "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
@@ -333,12 +250,11 @@ int readArrayFile(char* filePath, double *values) {
 }
 
 int main() { //test for write & read file //TODO: REMOVE
-    double array[] = {1.03,2.5,3.44,4.123,5,691,70,80.9999,9.999,10.1};
-    createArrayFile(array, 10);
-    double* a = readSavedArrayFile();
-    for (int i = 0; i < 10; i++) {
-        printf("%f\n", a[i]);
-    }
-    free(a);
+    double *numbers = malloc(sizeof(double)*4);
+    numbers[0] = 1.0;
+    numbers[1] = 1.3;
+    numbers[2] = 1.8;
+    numbers[3] = 2.23;
+    scaleValuesInArray(4, numbers, 0.5, 1);
     return 0;
 }
