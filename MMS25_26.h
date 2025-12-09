@@ -30,6 +30,7 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb);
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor);
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude);
 int writeArrayFile(char *filePath, double *array, int arrayLength);
+//TODO: nachfragen, was mit value gemeint ist
 int readArrayFile(char *fileName, double *value);
 MMSignal *createSignal_array(int numberOfValues, double *values);
 MMSignal *createSignal_file(char *fileName);

@@ -7,7 +7,6 @@
 #include <string.h>
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
-//Note: renam to scale
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
@@ -45,6 +44,7 @@ double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
 }
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
+//TODO: Nachfragen, ob die funktion richtig angewendet wird (mit main methoden beispielen)
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     if (xb > x2 || xb < x1) {
         exit(6);
@@ -84,26 +84,24 @@ double *scaleValuesInArray(int numberOfValues, double *values, double min, doubl
     return values;
 }
 
-//TODO
+double PI = 3.14159265359;
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
-    double stepsize = (3.1415*2) / samplingRate; //forced cast
-    int length = samplingRate + 1;
-    double *sineArray = calloc(length, sizeof(double));
+    double *sineArray = calloc(totalSamples, sizeof(double));
 
     if (sineArray == NULL) {
-        printf("calloc failed\n");
+        printf("creating the sine array failed\n");
         exit(8);
     }
 
-    for (int i = 0; i < length; i+=1) {
-        sineArray[i] = sin(i * stepsize) * amp;
+    for (int i = 0; i < totalSamples; i+=1) {
+        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI ist eine Periode
     }
 
     return sineArray;
 }
 
 //Takes a pointer to an array and creates a <filePath.txt> containing all the values
-//Returns 1 when everything worked, 0 if there was an error
+//Returns 1 if everything worked, 0 if there was an error
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
     FILE *filePointer;
 
@@ -136,8 +134,8 @@ typedef struct NumNode {
 } NumNode;
 
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
-int readArrayFile(char *fileName, double *value) {
-    FILE *filePointer = fopen(filePath, "r");
+int readArrayFile(char *fileName, double *values) {
+    FILE *filePointer = fopen(fileName, "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
         return -1;
@@ -250,11 +248,12 @@ int readArrayFile(char *fileName, double *value) {
 }
 
 int main() { //test for write & read file //TODO: REMOVE
-    double *numbers = malloc(sizeof(double)*4);
-    numbers[0] = 1.0;
-    numbers[1] = 1.3;
-    numbers[2] = 1.8;
-    numbers[3] = 2.23;
-    scaleValuesInArray(4, numbers, 0.5, 1);
+    double *sineArray = createSineArray(40, 5, 1);
+
+    for (int i = 0; i < 40; i++) {
+        printf("%i / %f\n", i, sineArray[i]);
+    }
+
+    free(sineArray);
     return 0;
 }
