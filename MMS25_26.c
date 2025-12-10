@@ -61,6 +61,7 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
 }
 
 //TODO: nochmal nachfragen
+//value*faktor - lowerlimit
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
     if (numberOfValues <= 0) {
         exit(7);

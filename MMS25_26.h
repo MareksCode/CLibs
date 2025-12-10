@@ -25,22 +25,19 @@ typedef struct {
     LocalExtrema *localExtrema;
 } MMSignal;
 
-//AUFGABE 1
+//A1
 double interpolateLine(double x1, double y1, double x2, double y2, double xb);
-double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor);
+double *scaleValuesInArray(int numberOfValues, double *values, double minimum, double scalingFactor);
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude);
 int writeArrayFile(char *filePath, double *array, int arrayLength);
-//TODO: nachfragen, was mit value gemeint ist
-int readArrayFile(char *fileName, double *value);
-//TODO: nachfragen ob umbenennen zu getSignalFromArray
+int readArrayFile(char *fileName, double *values);
 MMSignal *createSignal_array(int numberOfValues, double *values);
-//TODO: nachfragen ob umbenennen zu getSignalFromFile
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
 void writeSignal(MMSignal *In, char * fileName);
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude);
 
-//AUFGABE 2
+//A2
 int *getHistogram(int numberOfValues, double *values, int numberOfBins);
 Histogram *createHistogram_empty();
 Histogram *createHistogram_bins(int numberOfBins);
@@ -52,4 +49,9 @@ double computeStandardDeviation(MMSignal *In);
 double computeMedian(MMSignal *In);
 LocalExtrema *computeExtrema(MMSignal *In);
 double computeEntropy(Histogram *histogramIn);
+
+//A3
+MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2);
+MMSignal *approximateGaussianCurve(int pascalLineNumber);
+
 #endif
