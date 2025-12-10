@@ -11,9 +11,9 @@ typedef struct {
 } Histogram;
 
 typedef struct {
-    int minimumPositionArrayLength;
+    int numberOfMinimumPositions;
     int *minimumPositionArray;
-    int maximumPositionArrayLength;
+    int numberOfMaximumPositions;
     int *maximumPositionArray;
 } LocalExtrema;
 
@@ -27,11 +27,14 @@ typedef struct {
 
 //AUFGABE 1
 double interpolateLine(double x1, double y1, double x2, double y2, double xb);
-double *scaleValuesInArray(int valueArrayLength, double *values, double min, double scalingFactor);
+double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor);
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude);
 int writeArrayFile(char *filePath, double *array, int arrayLength);
+//TODO: nachfragen, was mit value gemeint ist
 int readArrayFile(char *fileName, double *value);
-MMSignal *createSignal_array(int valueArrayLength, double *values);
+//TODO: nachfragen ob umbenennen zu getSignalFromArray
+MMSignal *createSignal_array(int numberOfValues, double *values);
+//TODO: nachfragen ob umbenennen zu getSignalFromFile
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
 void writeSignal(MMSignal *In, char * fileName);
