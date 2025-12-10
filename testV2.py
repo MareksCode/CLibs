@@ -10,16 +10,16 @@ def compile_library():
     if not os.path.exists("MMS25_26.c") or not os.path.exists("MMS25_26.h"):
         raise FileNotFoundError("mms25.c oder mms25.h fehlt!")
     print("🔧 Kompiliere mms25.c …")
-    os.system(f"gcc -fPIC -shared -o ./mms25.so ./MMS25_26.c")
-    print("✔ Kompiliert: mms25.so\n")
-    if not os.path.exists("mms25.so"):
+    os.system(f"gcc -fPIC -shared -o ./mms25.o ./MMS25_26.c")
+    print("✔ Kompiliert: mms25.o\n")
+    if not os.path.exists("mms25.o"):
         raise FileNotFoundError("Kompilierung fehlgeschlagen: mms25.so fehlt!")
 
 # ----------------------------------------------------------------------
 # ctypes Definitions
 # ----------------------------------------------------------------------
 def load_lib():
-    lib = ctypes.CDLL("./mms25.so")
+    lib = ctypes.CDLL("./mms25.o")
 
     # Einfach alle Signaturen setzen
     lib.interpolateLine.argtypes = [ctypes.c_double]*5
