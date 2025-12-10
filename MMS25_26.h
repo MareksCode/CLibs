@@ -32,7 +32,9 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
 int writeArrayFile(char *filePath, double *array, int arrayLength);
 //TODO: nachfragen, was mit value gemeint ist
 int readArrayFile(char *fileName, double *value);
+//TODO: nachfragen ob umbenennen zu getSignalFromArray
 MMSignal *createSignal_array(int numberOfValues, double *values);
+//TODO: nachfragen ob umbenennen zu getSignalFromFile
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
 void writeSignal(MMSignal *In, char * fileName);

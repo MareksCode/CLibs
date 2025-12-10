@@ -247,6 +247,26 @@ int readArrayFile(char *fileName, double *values) {
     return arrayLength;
 }
 
+MMSignal *createSignal_array(int numberOfValues, double *values) {
+    MMSignal *newSignal = malloc(sizeof(MMSignal));
+
+    newSignal->numberOfSamples = numberOfValues;
+    newSignal->samples = values;
+
+    newSignal->area = -1;
+    newSignal->mean = -1;
+    newSignal->localExtrema = NULL;
+
+    return newSignal;
+}
+
+MMSignal *createSignal_file(char *fileName) {
+    double *signalArray = malloc(sizeof(double));
+    int numberOfSamples = readArrayFile(fileName, signalArray);
+
+    return createSignal_array(numberOfSamples, signalArray);
+}
+
 int main() { //test for write & read file //TODO: REMOVE
     double *sineArray = createSineArray(40, 5, 1);
 
