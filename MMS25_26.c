@@ -12,7 +12,6 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
         exit(3);
     }
-
     double diff = x2-x1;
     return (x1 + alpha*diff);
 }
