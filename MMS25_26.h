@@ -34,7 +34,7 @@ int readArrayFile(char *fileName, double *values);
 MMSignal *createSignal_array(int numberOfValues, double *values);
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
-void writeSignal(MMSignal *In, char * fileName);
+void writeSignal(MMSignal *In, char *fileName);
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude);
 
 //A2

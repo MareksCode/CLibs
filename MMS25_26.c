@@ -59,26 +59,13 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
-//TODO: nochmal nachfragen
-//value*faktor - lowerlimit
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
     if (numberOfValues <= 0) {
         exit(7);
     }
 
-    double minimumInArray = INFINITY;
     for (int i = 0; i< numberOfValues; i++) {
-        if (values[i]<minimumInArray) {
-            minimumInArray = values[i];
-        }
-    }
-
-    double newScaleFactor = minimumInArray/min;
-
-    printf("SCALEFACTOR: %f / %f", newScaleFactor, minimumInArray*newScaleFactor);
-
-    for (int i = 0; i< numberOfValues; i++) {
-        values[i]*= values[i] * newScaleFactor;
+        values[i] = values[i] * scalingFactor - min;
     }
 
     return values;
@@ -94,7 +81,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     }
 
     for (int i = 0; i < totalSamples; i+=1) {
-        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI ist eine Periode
+        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI is one period
     }
 
     return sineArray;
@@ -265,6 +252,25 @@ MMSignal *createSignal_file(char *fileName) {
     int numberOfSamples = readArrayFile(fileName, signalArray);
 
     return createSignal_array(numberOfSamples, signalArray);
+}
+
+void deleteMMSignal(MMSignal *In) {
+    if (In == NULL) {
+        return;
+    }
+
+    free(In->localExtrema);
+    free(In->samples);
+
+    free(In);
+}
+void writeSignal(MMSignal *In, char *fileName) {
+    writeArrayFile(fileName, In->samples, In->numberOfSamples);
+}
+
+MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude) {
+    MMSignal *newSignal = createSignal_array(totalSamples, createSineArray(totalSamples, samplesPerPeriod, amplitude));
+    return newSignal;
 }
 
 int main() { //test for write & read file //TODO: REMOVE
