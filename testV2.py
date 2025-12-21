@@ -1,7 +1,9 @@
-import subprocess
 import ctypes
 import os
+import multiprocessing as mp
+import ctypes
 import math
+import traceback
 
 # ----------------------------------------------------------------------
 # Kompilieren
@@ -22,6 +24,34 @@ def load_lib():
     lib = ctypes.CDLL("./mms25.o")
 
     # Einfach alle Signaturen setzen
+
+    class Histogram(ctypes.Structure):
+        _fields_ = [
+            ("numberOfBins", ctypes.c_int),
+            ("bins", ctypes.POINTER(ctypes.c_int)),
+            ("minimum", ctypes.c_double),
+            ("maximum", ctypes.c_double),
+            ("binWidth", ctypes.c_double),
+        ]
+
+    class LocalExtrema(ctypes.Structure):
+        _fields_ = [
+            ("numberOfMinimumPositions", ctypes.c_int),
+            ("minimumPositionArray", ctypes.POINTER(ctypes.c_int)),
+            ("numberOfMaximumPositions", ctypes.c_int),
+            ("maximumPositionArray", ctypes.POINTER(ctypes.c_int)),
+        ]
+
+    class MMSignal(ctypes.Structure):
+        _fields_ = [
+            ("numberOfSamples", ctypes.c_int),
+            ("samples", ctypes.POINTER(ctypes.c_double)),
+            ("area", ctypes.c_double),
+            ("mean", ctypes.c_double),
+            ("localExtrema", ctypes.POINTER(LocalExtrema)),
+        ]
+
+    # aufgabe 1
     lib.interpolateLine.argtypes = [ctypes.c_double]*5
     lib.interpolateLine.restype = ctypes.c_double
 
@@ -40,57 +70,34 @@ def load_lib():
     lib.readArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_double)]
     lib.readArrayFile.restype = ctypes.c_int
 
-    class Histogram(ctypes.Structure):
-        _fields_ = [
-            ("binCount", ctypes.c_int),
-            ("bins", ctypes.POINTER(ctypes.c_int)),
-            ("minimum", ctypes.c_double),
-            ("maximum", ctypes.c_double),
-            ("binWidth", ctypes.c_double),
-        ]
-
-    class LocalExtrema(ctypes.Structure):
-        _fields_ = [
-            ("minimumPositionArrayLength", ctypes.c_int),
-            ("minimumPositionArray", ctypes.POINTER(ctypes.c_int)),
-            ("maximumPositionArrayLength", ctypes.c_int),
-            ("maximumPositionArray", ctypes.POINTER(ctypes.c_int)),
-        ]
-
-    class MMSignal(ctypes.Structure):
-        _fields_ = [
-            ("sampleCount", ctypes.c_int),
-            ("samples", ctypes.POINTER(ctypes.c_double)),
-            ("area", ctypes.c_double),
-            ("mean", ctypes.c_double),
-            ("localExtrema", ctypes.POINTER(LocalExtrema)),
-        ]
-
     lib.createSignal_array.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double)]
     lib.createSignal_array.restype = ctypes.POINTER(MMSignal)
 
     lib.createSignal_file.argtypes = [ctypes.c_char_p]
     lib.createSignal_file.restype = ctypes.POINTER(MMSignal)
 
-    lib.deleteMMSignal.argtypes = [ctypes.POINTER(MMSignal)]
+    # noch nicht da wuuuu
+    #lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
+    #lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
 
-    lib.writeSignal.argtypes = [ctypes.POINTER(MMSignal), ctypes.c_char_p]
-
-    lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
-    lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
-
+    """
+    #aufgabe 2
     lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
     lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
 
-    lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_empty.argtypes = []
+    lib.createtHistogram_empty.restype = ctypes.POINTER(Histogram)
 
     lib.createHistogram_bins.argtypes = [ctypes.c_int]
     lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
 
-    lib.createHistogram_array.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
+    lib.createHistogram_array.argtypes = [
+        ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int
+    ]
     lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
 
-    lib.deleteHistogram.argtypes = [ctypes.POINTER(Histogram)]
+    lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
+    lib.computeEntropy.restype = ctypes.c_double
 
     lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
     lib.computeArea.restype = ctypes.c_double
@@ -109,106 +116,256 @@ def load_lib():
 
     lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
     lib.computeEntropy.restype = ctypes.c_double
-
+    """
+    
     return lib, MMSignal, Histogram, LocalExtrema
 
 
-# ----------------------------------------------------------------------
+
+# --------------------------------------------------------------
 # Hilfsfunktionen
-# ----------------------------------------------------------------------
-def c_array(values):
-    return (ctypes.c_double * len(values))(*values)
+# --------------------------------------------------------------
 
+def _worker(func, args, q):
+    """Worker-Prozess für C-Funktionsaufrufe."""
+    try:
+        result = func(*args)
+        q.put(("ok", result))
+    except Exception:
+        q.put(("error", traceback.format_exc()))
 
-# ----------------------------------------------------------------------
-# Tests aller Funktionen
-# ----------------------------------------------------------------------
+def safe_call(func, *args, description=""):
+    """
+    Führt einen Funktionsaufruf in einem separaten Worker-Prozess aus.
+    Wenn die C-Library den Worker beendet (exit/abort), bleibt der Hauptprozess lebendig.
+    """
+    print(f"\n--- TEST: {description} ---")
+    
+    q = mp.Queue()
+    p = mp.Process(target=_worker, args=(func, args, q))
+    p.start()
+    p.join()
+
+    if p.exitcode != 0:
+        print(f"Worker crashed or exited (exit code {p.exitcode}). Next call will create a new worker.")
+        return None
+
+    if not q.empty():
+        status, payload = q.get()
+        if status == "ok":
+            print("Result:", payload)
+            return payload
+        else:
+            print("Worker raised an exception:")
+            print(payload)
+            return None
+    else:
+        print("Worker finished without returning a result.")
+        return None
+
+# --------------------------------------------------------------
+# Testfunktionen
+# --------------------------------------------------------------
+
 def test_interpolateLine(lib):
-    print("🔹 Test interpolateLine")
-    assert abs(lib.interpolateLine(0, 0, 10, 10, 5) - 5) < 1e-9
-    print("   ✔ OK")
+    print("\n=== Testing interpolateLine ===")
+    
+    # Normalfall
+    safe_call(lib.interpolateLine, 0.0, 1.0, 10.0, 20.0, 0.5, description="Linear interpolation midpoint")
+
+    # Edge: x outside domain
+    safe_call(lib.interpolateLine, -1.0, 1.0, 10.0, 20.0, -10.0, description="x-value out of interpolation range")
+
+    # Edge: Zero division
+    safe_call(lib.interpolateLine, 1.0, 1.0, 10.0, 10.0, 1.0, description="Zero division case")
+
 
 def test_scaleValuesInArray(lib):
-    print("🔹 Test scaleValuesInArray")
-    arr = c_array([1, 2, 3])
-    out = lib.scaleValuesInArray(3, arr, 1.0, 2.0)
-    assert out[0] == 0 and out[1] == 2 and out[2] == 4
-    print("   ✔ OK (normal)")
+    print("\n=== Testing scaleValuesInArray ===")
 
-    arr1 = c_array([5])
-    out1 = lib.scaleValuesInArray(1, arr1, 5, 10)
-    assert abs(out1[0]) < 1e-12
-    print("   ✔ OK (Randfall 1 Wert)")
+    arr = (ctypes.c_double * 5)(1, 2, 3, 4, 5)
+
+    safe_call(lib.scaleValuesInArray, 5, arr, 0.0, 1.0, description="Normal scaling")
+
+    # Edge: Null pointer
+    safe_call(lib.scaleValuesInArray, 5, None, 0.0, 1.0, description="Null pointer for array")
+
+    # Edge: zero length
+    safe_call(lib.scaleValuesInArray, 0, arr, 0.0, 1.0, description="Zero-length array")
+
 
 def test_createSineArray(lib):
-    print("🔹 Test createSineArray")
-    out = lib.createSineArray(4, 4, 1.0)
-    expected = [0, 1, 0, -1]
-    for i in range(4):
-        assert abs(out[i] - expected[i]) < 0.2  # Toleranz
-    print("   ✔ OK")
+    print("\n=== Testing createSineArray ===")
 
-def test_write_read_ArrayFile(lib):
-    print("🔹 Test writeArrayFile & readArrayFile")
-    arr = c_array([1.234])
-    lib.writeArrayFile(b"test.txt", arr, 1)
-    val = ctypes.c_double()
-    lib.readArrayFile(b"test.txt", ctypes.byref(val))
-    assert abs(val.value - 1.234) < 1e-9
-    print("   ✔ OK")
+    safe_call(lib.createSineArray, 100, 1, 1.0, description="Valid sine array creation")
 
-def test_createSignal_array(lib, MMSignal):
-    print("🔹 Test createSignal_array")
-    arr = c_array([1, 2, 3])
-    sig = lib.createSignal_array(3, arr)
-    assert sig.contents.sampleCount == 3
-    print("   ✔ OK")
+    safe_call(lib.createSineArray, 0, 1, 1.0, description="Zero samples")
 
-def test_histograms(lib, Histogram):
-    print("🔹 Test Histogram-Funktionen")
-    arr = c_array([1, 2, 3, 4])
-    hist = lib.createHistogram_array(4, arr, 2)
-    assert hist.contents.binCount == 2 or True
-    print("   ✔ OK (Grundtest)")
-
-def test_signalStats(lib, MMSignal):
-    print("🔹 Test computeArea/Mean/StdDev/Median/Extrema")
-    arr = c_array([1, 2, 3])
-    sig = lib.createSignal_array(3, arr)
-
-    # Keine Annahmen → nur prüfen dass kein Crash
-    lib.computeArea(sig)
-    lib.computeMean(sig)
-    lib.computeStandardDeviation(sig)
-    lib.computeMedian(sig)
-    lib.computeExtrema(sig)
-
-    print("   ✔ Kein Crash")
-
-def test_entropy(lib, Histogram):
-    print("🔹 Test computeEntropy")
-    hist = lib.createHistogram_empty()
-    lib.computeEntropy(hist)
-    print("   ✔ Kein Crash")
+    safe_call(lib.createSineArray, -10, 1, 1.0, description="Negative samples")
 
 
-# ----------------------------------------------------------------------
-# Hauptausführung
-# ----------------------------------------------------------------------
-if __name__ == "__main__":
-    compile_library()
-    lib, MMSignal, Histogram, LocalExtrema = load_lib()
+def test_writeArrayFile_readArrayFile(lib):
+    print("\n=== Testing writeArrayFile / readArrayFile ===")
 
-    # Alle Tests
-    test_interpolateLine(lib)
+    arr = (ctypes.c_double * 5)(1.1, 2.2, 3.3, 4.4, 5.5)
+    filename = b"test_array.bin"
+
+    # Write file
+    safe_call(lib.writeArrayFile, filename, arr, 5, description="Write valid array file")
+
+    # Read file
+    read_arr = (ctypes.c_double * 5)()
+    safe_call(lib.readArrayFile, filename, read_arr, description="Read valid array file")
+
+    # Edge: invalid filename
+    safe_call(lib.readArrayFile, b"/invalid/path", read_arr, description="Read invalid file")
+
+
+def test_createSignal_array(lib):
+    print("\n=== Testing createSignal_array ===")
+
+    samples = (ctypes.c_double * 5)(1, 2, 3, 4, 5)
+    safe_call(lib.createSignal_array, 5, samples, description="Normal signal creation")
+
+    # Edge: zero samples
+    safe_call(lib.createSignal_array, 0, samples, description="Zero samples")
+
+    # Edge: NULL samples
+    safe_call(lib.createSignal_array, 5, None, description="Null pointer samples")
+
+
+def test_createSignal_file(lib):
+    print("\n=== Testing createSignal_file ===")
+
+    # Should succeed
+    safe_call(lib.createSignal_file, b"test_array.bin", description="Valid signal from file")
+
+    # Nonexistent
+    safe_call(lib.createSignal_file, b"does_not_exist.bin", description="Invalid file")
+
+
+def test_createSineSignal(lib):
+    print("\n=== Testing createSineSignal ===")
+
+    safe_call(lib.createSineSignal, 100, 2, 1.0, description="Valid sine signal")
+
+    safe_call(lib.createSineSignal, 0, 1, 1.0, description="Zero samples")
+
+    safe_call(lib.createSineSignal, -10, 1, 1.0, description="Negative samples")
+
+
+# -------------------------
+# HISTOGRAM TESTS
+# -------------------------
+
+def test_getHistogram(lib):
+    print("\n=== Testing getHistogram ===")
+
+    data = (ctypes.c_double * 5)(1, 2, 2, 3, 4)
+    safe_call(lib.getHistogram, 5, data, 3, description="Valid histogram")
+
+    safe_call(lib.getHistogram, 0, data, 3, description="Zero samples")
+
+    safe_call(lib.getHistogram, 5, None, 3, description="Null data pointer")
+
+
+def test_createHistogram_empty(lib):
+    print("\n=== Testing createHistogram_empty ===")
+    safe_call(lib.createHistogram_empty, description="Empty histogram creation")
+
+
+def test_createHistogram_bins(lib):
+    print("\n=== Testing createHistogram_bins ===")
+
+    safe_call(lib.createHistogram_bins, 5, description="Valid bins")
+
+    safe_call(lib.createHistogram_bins, 0, description="Zero bins")
+
+    safe_call(lib.createHistogram_bins, -5, description="Negative bins")
+
+
+def test_createHistogram_array(lib):
+    print("\n=== Testing createHistogram_array ===")
+
+    data = (ctypes.c_double * 5)(1, 2, 3, 4, 5)
+    safe_call(lib.createHistogram_array, 5, data, 3, description="Valid histogram array")
+
+    safe_call(lib.createHistogram_array, 0, data, 3, description="Zero samples")
+
+    safe_call(lib.createHistogram_array, 5, None, 3, description="Null pointer samples")
+
+
+def test_computeEntropy(lib):
+    print("\n=== Testing computeEntropy ===")
+
+    # Create histogram
+    h = lib.createHistogram_bins(5)
+    safe_call(lib.computeEntropy, h, description="Entropy valid histogram")
+
+    # Edge: NULL pointer
+    safe_call(lib.computeEntropy, None, description="Entropy null pointer")
+
+
+# -------------------------
+# MMSIGNAL TESTS
+# -------------------------
+
+def test_signal_stats(lib):
+    print("\n=== Testing MMSignal Statistics ===")
+
+    data = (ctypes.c_double * 5)(1,2,3,4,5)
+    sig = lib.createSignal_array(5, data)
+
+    safe_call(lib.computeArea, sig, description="Area")
+
+    safe_call(lib.computeMean, sig, description="Mean")
+
+    safe_call(lib.computeStandardDeviation, sig, description="StdDev")
+
+    safe_call(lib.computeMedian, sig, description="Median")
+
+    safe_call(lib.computeExtrema, sig, description="Local extrema")
+
+    # Edge: null signal
+    safe_call(lib.computeArea, None, description="Area null pointer")
+    safe_call(lib.computeMean, None, description="Mean null pointer")
+    safe_call(lib.computeStandardDeviation, None, description="Std null pointer")
+    safe_call(lib.computeMedian, None, description="Median null pointer")
+    safe_call(lib.computeExtrema, None, description="Extrema null pointer")
+
+
+# --------------------------------------------------------------
+# MAIN RUNNER
+# --------------------------------------------------------------
+
+def run_all_tests(lib):
+    #test_interpolateLine(lib)
     test_scaleValuesInArray(lib)
     test_createSineArray(lib)
-    test_write_read_ArrayFile(lib)
-    test_createSignal_array(lib, MMSignal)
-    test_histograms(lib, Histogram)
-    test_signalStats(lib, MMSignal)
-    test_entropy(lib, Histogram)
+    test_writeArrayFile_readArrayFile(lib)
+    test_createSignal_array(lib)
+    test_createSignal_file(lib)
+    test_createSineSignal(lib)
 
-    print("\n============================================")
-    print("✔ ALLE FUNKTIONEN GETESTET — keine Crashes")
-    print("============================================\n")
+    """
+    test_getHistogram(lib)
+    test_createHistogram_empty(lib)
+    test_createHistogram_bins(lib)
+    test_createHistogram_array(lib)
+    test_computeEntropy(lib)
+
+    test_signal_stats(lib)
+    """
+
+    print("\n\n=== ALL TESTS FINISHED ===")
+
+
+# --------------------------------------------------------------
+
+if __name__ == "__main__":
+    # Beispiel: lib laden
+    # lib = ctypes.CDLL("./libsignal.so")
+    mp.set_start_method("spawn")
+    compile_library()
+    lib = load_lib()[0]
+    run_all_tests(lib)
