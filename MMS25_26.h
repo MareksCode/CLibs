@@ -34,7 +34,7 @@ int readArrayFile(char *fileName, double *values);
 MMSignal *createSignal_array(int numberOfValues, double *values);
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
-void writeSignal(MMSignal *In, char * fileName);
+void writeSignal(MMSignal *In, char *fileName);
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude);
 
 //A2
@@ -53,5 +53,11 @@ double computeEntropy(Histogram *histogramIn);
 //A3
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2);
 MMSignal *approximateGaussianCurve(int pascalLineNumber);
+
+//A4
+//dft
+//direction = 1 is forward, direction = -1 is backward fourier
+void discreteFourierTransformation(int numberOfValues, double realIn, double imaginaryIn, double realOut, double imaginaryOut, int direction);
+void getCartesianToPolar();
 
 #endif

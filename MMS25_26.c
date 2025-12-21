@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
@@ -12,7 +13,6 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
         exit(3);
     }
-
     double diff = x2-x1;
     return (x1 + alpha*diff);
 }
@@ -60,26 +60,13 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
-//TODO: nochmal nachfragen
-//value*faktor - lowerlimit
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
     if (numberOfValues <= 0) {
         exit(7);
     }
 
-    double minimumInArray = INFINITY;
     for (int i = 0; i< numberOfValues; i++) {
-        if (values[i]<minimumInArray) {
-            minimumInArray = values[i];
-        }
-    }
-
-    double newScaleFactor = minimumInArray/min;
-
-    printf("SCALEFACTOR: %f / %f", newScaleFactor, minimumInArray*newScaleFactor);
-
-    for (int i = 0; i< numberOfValues; i++) {
-        values[i]*= values[i] * newScaleFactor;
+        values[i] = values[i] * scalingFactor - min;
     }
 
     return values;
@@ -95,7 +82,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     }
 
     for (int i = 0; i < totalSamples; i+=1) {
-        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI ist eine Periode
+        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI is one period
     }
 
     return sineArray;
@@ -268,13 +255,261 @@ MMSignal *createSignal_file(char *fileName) {
     return createSignal_array(numberOfSamples, signalArray);
 }
 
-int main() { //test for write & read file //TODO: REMOVE
-    double *sineArray = createSineArray(40, 5, 1);
-
-    for (int i = 0; i < 40; i++) {
-        printf("%i / %f\n", i, sineArray[i]);
+void deleteMMSignal(MMSignal *In) {
+    if (In == NULL) {
+        return;
     }
 
-    free(sineArray);
+    free(In->localExtrema);
+    free(In->samples);
+
+    free(In);
+}
+void writeSignal(MMSignal *In, char *fileName) {
+    writeArrayFile(fileName, In->samples, In->numberOfSamples);
+}
+
+MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude) {
+    MMSignal *newSignal = createSignal_array(totalSamples, createSineArray(totalSamples, samplesPerPeriod, amplitude));
+    return newSignal;
+}
+
+// A2
+
+int *getHistogram(int numberOfValues, double *values, int numberOfBins)
+{
+    if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
+        exit(-99);
+    }
+
+    int *histogram = calloc(numberOfBins, sizeof(int));
+    if (histogram == NULL) {
+        exit(-98);
+    }
+
+    double min = DBL_MAX;
+    double max = -DBL_MAX;
+
+    for (int i = 0; i < numberOfValues; i++) {
+        if (values[i] < min) {
+            min = values[i];
+        }
+        if (values[i] > max) {
+            max = values[i];
+        }
+    }
+
+    //wenn alle Werte gleich
+    if (min == max) {
+        histogram[0] = numberOfValues;
+        return histogram;
+    }
+
+    double binWidth = (max - min) / numberOfBins;
+
+    for (int i = 0; i < numberOfValues; i++) {
+        int bin = (int)((values[i] - min) / binWidth);
+
+        if (bin == numberOfBins) {
+            bin = numberOfBins - 1;
+        }
+
+        histogram[bin]++;
+    }
+
+    return histogram;
+}
+
+Histogram *createHistogram_empty()
+{
+    Histogram *h = malloc(sizeof(Histogram));
+    if (h == NULL) {
+        exit(-98);
+    }
+
+    h->numberOfBins = -1;
+    h->bins = NULL;
+    h->minimum = 0;
+    h->maximum = 0;
+    h->binWidth = 0;
+
+    return h;
+}
+
+Histogram *createHistogram_bins(int numberOfBins)
+{
+    if (numberOfBins <= 0) {
+        exit(-97);
+    }
+
+    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
+
+    h->numberOfBins = numberOfBins;
+    h->bins = calloc(numberOfBins, sizeof(int));
+
+    if (h->bins == NULL) {
+        free(h);
+        exit(-96);
+    }
+
+    return h;
+}
+
+Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins)
+{
+    if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
+        exit(-95);
+    }
+
+    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
+
+    double min = DBL_MAX;
+    double max = -DBL_MAX;
+
+    for (int i = 0; i < numberOfValues; i++) {
+        if (values[i] < min) {
+            min = values[i];
+        }
+        if (values[i] > max) {
+            max = values[i];
+        }
+    }
+
+    h->minimum = min;
+    h->maximum = max;
+    h->numberOfBins = numberOfBins;
+
+    h->bins = getHistogram(numberOfValues, values, numberOfBins);
+
+    if (min == max) {
+        h->binWidth = 0.0;
+    } else {
+        h->binWidth = (max - min) / numberOfBins;
+    }
+
+    return h;
+}
+
+void deleteHistogram(Histogram *In)
+{
+    if (In == NULL) {
+        return;
+    }
+
+    free(In->bins);
+    free(In);
+}
+
+double computeArea(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-94);
+    }
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-93);
+    }
+
+    double area = 0;
+
+    for (int i = 0; i < In->numberOfSamples; i++) {
+        area += In->samples[i];
+    }
+
+    In->area = area;
+    return area;
+}
+
+double computeMean(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-92);
+    }
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-91);
+    }
+
+    In->mean = computeArea(In) / In->numberOfSamples;
+    return In->mean;
+}
+
+double computeStandardDeviation(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-90);
+    }
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-89);
+    }
+
+    double mean = computeMean(In);
+
+    double sum = 0;
+
+    for (int i = 0; i < In->numberOfSamples; i++) {
+        double diff = In->samples[i] - mean;
+        sum += diff * diff;
+    }
+
+    return sqrt(sum / In->numberOfSamples);
+}
+
+double bubbleSort(double *array, int arraySize) {
+    for (int i = 0; i < arraySize - 1; i++) {
+        for (int j = 0; j < arraySize - i - 1; j++) {
+            if (array[j] > array[j + 1]) {
+                double temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+        }
+    }
+}
+
+double computeMedian(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-88);
+    }
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-87);
+    }
+
+    int n = In->numberOfSamples;
+
+    double *tmp = malloc(n * sizeof(double));
+    if (tmp == NULL) {
+        exit(-86);
+    }
+
+    for (int i = 0; i < n; i++) {
+        tmp[i] = In->samples[i];
+    }
+
+    bubbleSort(tmp, n);
+
+    double median;
+
+    if (n % 2 == 0) {
+        median = (tmp[n / 2 - 1] + tmp[n / 2]) / 2;
+    } else {
+        median = tmp[n / 2];
+    }
+
+    free(tmp);
+    return median;
+}
+
+int main() {
+    //test for median //TODO: REMOVE
+    double arr[] = {1,3,3,5,7,8,10};
+    int i = 7;
+
+    printf("%f", computeMedian(createSignal_array(i, arr)));
+
+    free(arr);
     return 0;
 }
