@@ -549,6 +549,12 @@ LocalExtrema *computeExtrema(MMSignal *In) {
     return newExtrema;
 }
 
+// A 3
+
+MMSignal *approximateGaussianCurve(int pascalLineNumber) {
+
+}
+
 int main() {
     //test for median //TODO: REMOVE
     double arr[] = {1,3,3,5,7,8,10};
