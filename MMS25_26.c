@@ -503,6 +503,52 @@ double computeMedian(MMSignal *In)
     return median;
 }
 
+//TODO: sattelstelle?
+LocalExtrema *computeExtrema(MMSignal *In) {
+    LocalExtrema *newExtrema = malloc(sizeof(LocalExtrema));
+    newExtrema->numberOfMinimumPositions = 0;
+    newExtrema->numberOfMaximumPositions = 0;
+    newExtrema->maximumPositionArray = malloc(sizeof(int) * BLOCK_SIZE);
+    newExtrema->minimumPositionArray = malloc(sizeof(int) * BLOCK_SIZE);
+
+    int currentMaxArraySize = BLOCK_SIZE;
+    int currentMinArraySize = BLOCK_SIZE;
+
+    for (int i = 1; i < In->numberOfSamples-1; i++) {
+        if (In->samples[i - 1] < In->samples[i] && In->samples[i + 1] < In->samples[i]) {
+            newExtrema->numberOfMinimumPositions+=1;
+
+            if (newExtrema->numberOfMinimumPositions > currentMaxArraySize) {
+                newExtrema->minimumPositionArray = realloc(newExtrema->minimumPositionArray, sizeof(int) * currentMaxArraySize);
+
+                if (newExtrema->minimumPositionArray == NULL) {
+                    exit(-85);
+                }
+
+                currentMaxArraySize += BLOCK_SIZE;
+            }
+
+            newExtrema->maximumPositionArray[newExtrema->numberOfMinimumPositions - 1] = i;
+        } else if (In->samples[i - 1] > In->samples[i] && In->samples[i + 1] > In->samples[i]) {
+            newExtrema->numberOfMaximumPositions+=1;
+
+            if (newExtrema->numberOfMaximumPositions > currentMinArraySize) {
+                newExtrema->maximumPositionArray = realloc(newExtrema->maximumPositionArray, sizeof(int) * currentMinArraySize);
+
+                if (newExtrema->maximumPositionArray == NULL) {
+                    exit(-84);
+                }
+
+                currentMinArraySize += BLOCK_SIZE;
+            }
+
+            newExtrema->maximumPositionArray[newExtrema->numberOfMaximumPositions - 1] = i;
+        }
+    }
+
+    return newExtrema;
+}
+
 int main() {
     //test for median //TODO: REMOVE
     double arr[] = {1,3,3,5,7,8,10};
