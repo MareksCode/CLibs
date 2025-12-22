@@ -508,8 +508,8 @@ LocalExtrema *computeExtrema(MMSignal *In) {
     LocalExtrema *newExtrema = malloc(sizeof(LocalExtrema));
     newExtrema->numberOfMinimumPositions = 0;
     newExtrema->numberOfMaximumPositions = 0;
-    newExtrema->maximumPositionArray = malloc(sizeof(int) * BLOCK_SIZE);
-    newExtrema->minimumPositionArray = malloc(sizeof(int) * BLOCK_SIZE);
+    newExtrema->maximumPositionArray = malloc(BLOCK_SIZE);
+    newExtrema->minimumPositionArray = malloc(BLOCK_SIZE);
 
     int currentMaxArraySize = BLOCK_SIZE;
     int currentMinArraySize = BLOCK_SIZE;
@@ -518,8 +518,8 @@ LocalExtrema *computeExtrema(MMSignal *In) {
         if (In->samples[i - 1] < In->samples[i] && In->samples[i + 1] < In->samples[i]) {
             newExtrema->numberOfMinimumPositions+=1;
 
-            if (newExtrema->numberOfMinimumPositions > currentMaxArraySize) {
-                newExtrema->minimumPositionArray = realloc(newExtrema->minimumPositionArray, sizeof(int) * currentMaxArraySize);
+            if (newExtrema->numberOfMinimumPositions * sizeof(int) > currentMaxArraySize) {
+                newExtrema->minimumPositionArray = realloc(newExtrema->minimumPositionArray, currentMinArraySize + BLOCK_SIZE);
 
                 if (newExtrema->minimumPositionArray == NULL) {
                     exit(-85);
@@ -532,8 +532,8 @@ LocalExtrema *computeExtrema(MMSignal *In) {
         } else if (In->samples[i - 1] > In->samples[i] && In->samples[i + 1] > In->samples[i]) {
             newExtrema->numberOfMaximumPositions+=1;
 
-            if (newExtrema->numberOfMaximumPositions > currentMinArraySize) {
-                newExtrema->maximumPositionArray = realloc(newExtrema->maximumPositionArray, sizeof(int) * currentMinArraySize);
+            if (newExtrema->numberOfMaximumPositions * sizeof(int) > currentMinArraySize) {
+                newExtrema->maximumPositionArray = realloc(newExtrema->maximumPositionArray, currentMaxArraySize + BLOCK_SIZE);
 
                 if (newExtrema->maximumPositionArray == NULL) {
                     exit(-84);
