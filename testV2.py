@@ -129,6 +129,9 @@ def load_lib():
 def _worker(func, args, q):
     """Worker-Prozess für C-Funktionsaufrufe."""
     try:
+        # If the argument is a ctypes structure, recreate it in the worker process
+        args = [arg if isinstance(arg, ctypes.POINTER(ctypes.c_double)) else arg for arg in args]
+        
         result = func(*args)
         q.put(("ok", result))
     except Exception:
@@ -162,7 +165,6 @@ def safe_call(func, *args, description=""):
     else:
         print("Worker finished without returning a result.")
         return None
-
 # --------------------------------------------------------------
 # Testfunktionen
 # --------------------------------------------------------------

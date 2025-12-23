@@ -3,3 +3,10 @@
 *.exe
 *.o
 aoc-day1.py
+*.xlsx
+/clibs_test
+*.so
+*.dll
+*.go
+*.pyc
+*.log
