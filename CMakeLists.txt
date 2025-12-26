@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 3.20)
-project(MMS C)
+cmake_minimum_required(VERSION 4.0)
+project(untitled2 C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 99)
 
-add_executable(test
-        main.c
-        MMS25_26.c
+add_library(untitled2 STATIC MMS25_26.c
+        analysisTools.c
+        analysisTools.h
 )
-
-target_link_libraries(test m)

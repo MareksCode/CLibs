@@ -1,515 +1,567 @@
 #include "MMS25_26.h"
 
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <float.h>
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
-// -------------------------
-// Helpers (safe alloc)
-// -------------------------
-static void *xmalloc(size_t n) {
-    void *p = malloc(n);
-    if (!p) { perror("malloc"); exit(EXIT_FAILURE); }
-    return p;
-}
-static void *xcalloc(size_t c, size_t n) {
-    void *p = calloc(c, n);
-    if (!p) { perror("calloc"); exit(EXIT_FAILURE); }
-    return p;
-}
-static void *xrealloc(void *old, size_t n) {
-    void *p = realloc(old, n);
-    if (!p) { perror("realloc"); exit(EXIT_FAILURE); }
-    return p;
+//Returns a linearly interpolated number between <x1> and <x2> using <alpha>
+double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
+    if (alpha < 0 || alpha > 1) {
+        printf("Wrong usage! Alpha must be between 0 and 1.\n");
+        exit(3);
+    }
+    double diff = x2-x1;
+    return (x1 + alpha*diff);
 }
 
-// ============================================================
-// A1
-// ============================================================
+//linearly interpolates 2d points represented by arrays by <alpha>
+double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
+    double *resultingPoint = calloc(2, sizeof(double));
+    resultingPoint[0] = interpolateDigitsByAlpha(p1[0], p2[0], alpha);
+    resultingPoint[1] = interpolateDigitsByAlpha(p1[1], p2[1], alpha);
 
+    return resultingPoint;
+}
+
+//linearly interpolates 2d points represented by arrays using an x inbetween them
+double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
+    double x1 = p1[0];
+    double x2 = p2[0];
+
+    double fullLength = fabs(x2 - x1);
+    double alpha = 0;
+
+    if (x1 <= x2) {
+        alpha = (x-x1)/fullLength;
+        return interpolate2DPointsByAlpha(p1,p2,alpha);
+    } else {
+        alpha = (x-x2)/fullLength;
+        return interpolate2DPointsByAlpha(p2,p1,alpha);
+    }
+}
+
+//Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
+//TODO: Nachfragen, ob die funktion richtig angewendet wird (mit main methoden beispielen)
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
-    if (x1 == x2) return y1; // degenerate
-    double xmin = (x1 < x2) ? x1 : x2;
-    double xmax = (x1 > x2) ? x1 : x2;
-    if (xb < xmin || xb > xmax) {
-        fprintf(stderr, "interpolateLine: xb out of range\n");
-        exit(EXIT_FAILURE);
+    if (xb > x2 || xb < x1) {
+        exit(6);
     }
-    double alpha = (xb - x1) / (x2 - x1);
-    return y1 + alpha * (y2 - y1);
+
+    double smallerX = x1;
+    if (x2 < x1) {
+        smallerX = x2;
+    }
+
+    double alpha = (xb-smallerX)/fabs(x1-x2);
+
+    return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
-// out[i] = (values[i] - oldMin) * scalingFactor + minimum
-double *scaleValuesInArray(int numberOfValues, double *values, double minimum, double scalingFactor) {
-    if (!values || numberOfValues <= 0) {
-        fprintf(stderr, "scaleValuesInArray: invalid input\n");
-        exit(EXIT_FAILURE);
+double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
+    if (numberOfValues <= 0) {
+        exit(7);
     }
 
-    double oldMin = DBL_MAX;
-    for (int i = 0; i < numberOfValues; i++) {
-        if (values[i] < oldMin) oldMin = values[i];
+    for (int i = 0; i< numberOfValues; i++) {
+        values[i] = values[i] * scalingFactor - min;
     }
 
-    for (int i = 0; i < numberOfValues; i++) {
-        values[i] = (values[i] - oldMin) * scalingFactor + minimum;
-    }
     return values;
 }
 
+double PI = 3.14159265359;
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
-    if (totalSamples <= 0 || samplesPerPeriod <= 0) {
-        fprintf(stderr, "createSineArray: invalid input\n");
-        exit(EXIT_FAILURE);
+    double *sineArray = calloc(totalSamples, sizeof(double));
+
+    if (sineArray == NULL) {
+        printf("creating the sine array failed\n");
+        exit(8);
     }
-    double *arr = (double*)xcalloc((size_t)totalSamples, sizeof(double));
-    for (int i = 0; i < totalSamples; i++) {
-        double phase = 2.0 * M_PI * ((double)i / (double)samplesPerPeriod);
-        arr[i] = amplitude * sin(phase);
+
+    for (int i = 0; i < totalSamples; i+=1) {
+        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI is one period
     }
-    return arr;
+
+    return sineArray;
 }
 
+//Takes a pointer to an array and creates a <filePath.txt> containing all the values
+//Returns 1 if everything worked, 0 if there was an error
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
-    if (!filePath || !array || arrayLength < 0) return 0;
-    FILE *fp = fopen(filePath, "w");
-    if (!fp) return 0;
+    FILE *filePointer;
+
+    filePointer = fopen(filePath, "w");
+
+    if (filePointer == NULL) {
+        printf("Error creating new file\n");
+        return 0;
+    }
 
     for (int i = 0; i < arrayLength; i++) {
-        fprintf(fp, "%.17g\n", array[i]);
+        fprintf(filePointer, "%f\n", array[i]);
     }
-    fclose(fp);
+
+    fclose(filePointer);
+
+    printf("File created\n");
     return 1;
 }
 
-// Reads max BLOCK_SIZE values because signature cannot return new pointer
-int readArrayFile(char *fileName, double *values) {
-    if (!fileName || !values) return -1;
-    FILE *fp = fopen(fileName, "r");
-    if (!fp) return -1;
+typedef struct Node {
+    char data;
+    struct Node* next;
+    struct Node* prev;
+} Node;
+typedef struct NumNode {
+    double data;
+    struct NumNode* next;
+    struct NumNode* prev;
+} NumNode;
 
-    char line[256];
-    int count = 0;
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        if (count >= BLOCK_SIZE) break;
-        values[count] = strtod(line, NULL);
-        count++;
+//reads <filePath> and returns the array length of the passed array to the parsed numbersequence
+int readArrayFile(char *fileName, double *values) {
+    FILE *filePointer = fopen(fileName, "r");
+    if (filePointer == NULL) {
+        printf("Could not open file\n");
+        return -1;
     }
-    fclose(fp);
-    return count;
+
+    //Linkin Park list
+    Node *numberReadHead = malloc(sizeof(Node));
+    numberReadHead->next = NULL;
+    numberReadHead->prev = NULL;
+
+    NumNode *doubleArrayHead = malloc(sizeof(NumNode));
+    doubleArrayHead->next = NULL;
+    doubleArrayHead->prev = NULL;
+
+    char ch;
+
+    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
+        int currentNumberLength = 0;
+
+        //create tmp node for the linked list that saves the current double string
+        Node *newNode = malloc(sizeof(Node));
+        newNode->data = ch;
+        newNode->next = NULL;
+
+        //get the current string length & the next node to add the char to
+        Node *previousNode = numberReadHead;
+        while (previousNode->next != NULL) {
+            previousNode = previousNode->next;
+            currentNumberLength+=1;
+        }
+
+        previousNode->next = newNode;
+        newNode->prev = previousNode;
+
+        //string finished? Parse string to double & reset the numberReadHead linked list
+        if (ch == '\n') {
+            //write chars in array
+            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
+
+            int i = 0;
+            Node *iterator = numberReadHead;
+            while (iterator->next != NULL) {
+                iterator = iterator->next;
+                doubleAsString[i] = iterator->data;
+                i+=1;
+            }
+
+            //parse the string to a double and add it to the final linked list
+            double parsedResult = strtod(doubleAsString, NULL);
+            NumNode *lastDoubleArrayNode = doubleArrayHead;
+            while (lastDoubleArrayNode->next != NULL) {
+                lastDoubleArrayNode = lastDoubleArrayNode->next;
+            }
+
+            NumNode *newDoubleArrayNode = malloc(sizeof(NumNode));
+            newDoubleArrayNode->data = parsedResult;
+            newDoubleArrayNode->next = NULL;
+            newDoubleArrayNode->prev = lastDoubleArrayNode;
+            lastDoubleArrayNode->next = newDoubleArrayNode;
+
+            free(doubleAsString);
+
+            //reduce the linkedlist to its header again
+            Node *nextNode = newNode;
+            Node *deletingNode;
+            while (nextNode->prev != NULL) {
+                deletingNode = nextNode;
+                nextNode = nextNode->prev;
+
+                free(deletingNode);
+            }
+            numberReadHead->next = NULL;
+        }
+    }
+
+    free(numberReadHead);
+
+    //Create an array using the doubleArray linked list
+    int arrayLength = 0;
+    NumNode *iterator = doubleArrayHead;
+    while (iterator->next != NULL) {
+        arrayLength+=1;
+        iterator = iterator->next;
+    }
+
+    values = realloc(values, sizeof(double) * arrayLength);
+
+    if (values == NULL) {
+        free(values);
+        fclose(filePointer);
+        printf("realloc failed\n");
+        return -2;
+    }
+
+    //write in the array & delete linked list
+    while (iterator->prev != NULL) {
+        arrayLength-=1;
+        values[arrayLength] = iterator->data;
+
+        NumNode *thisNode = iterator;
+        iterator = iterator->prev;
+
+        free(thisNode);
+    }
+
+    free(doubleArrayHead);
+
+    fclose(filePointer);
+    return arrayLength;
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
-    if (numberOfValues < 0) {
-        fprintf(stderr, "createSignal_array: invalid numberOfValues\n");
-        exit(EXIT_FAILURE);
-    }
+    MMSignal *newSignal = malloc(sizeof(MMSignal));
 
-    MMSignal *s = (MMSignal*)xmalloc(sizeof(MMSignal));
-    s->numberOfSamples = numberOfValues;
-    s->samples = values;     // ownership: freed in deleteMMSignal
-    s->area = 0.0;
-    s->mean = 0.0;
-    s->localExtrema = NULL;
-    return s;
+    newSignal->numberOfSamples = numberOfValues;
+    newSignal->samples = values;
+
+    newSignal->area = -1;
+    newSignal->mean = -1;
+    newSignal->localExtrema = NULL;
+
+    return newSignal;
 }
 
 MMSignal *createSignal_file(char *fileName) {
-    double *buf = (double*)xcalloc(BLOCK_SIZE, sizeof(double));
-    int n = readArrayFile(fileName, buf);
-    if (n < 0) {
-        free(buf);
-        fprintf(stderr, "createSignal_file: read failed\n");
-        exit(EXIT_FAILURE);
-    }
-    buf = (double*)xrealloc(buf, (size_t)n * sizeof(double));
-    return createSignal_array(n, buf);
+    double *signalArray = malloc(sizeof(double));
+    int numberOfSamples = readArrayFile(fileName, signalArray);
+
+    return createSignal_array(numberOfSamples, signalArray);
 }
 
 void deleteMMSignal(MMSignal *In) {
-    if (!In) return;
-
-    if (In->localExtrema) {
-        free(In->localExtrema->minimumPositionArray);
-        free(In->localExtrema->maximumPositionArray);
-        free(In->localExtrema);
+    if (In == NULL) {
+        return;
     }
 
+    free(In->localExtrema);
     free(In->samples);
+
     free(In);
 }
-
-void writeSignal(MMSignal *In, char * fileName) {
-    if (!In) return;
-    (void)writeArrayFile(fileName, In->samples, In->numberOfSamples);
+void writeSignal(MMSignal *In, char *fileName) {
+    writeArrayFile(fileName, In->samples, In->numberOfSamples);
 }
 
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude) {
-    double *arr = createSineArray(totalSamples, samplesPerPeriod, amplitude);
-    return createSignal_array(totalSamples, arr);
+    MMSignal *newSignal = createSignal_array(totalSamples, createSineArray(totalSamples, samplesPerPeriod, amplitude));
+    return newSignal;
 }
 
-// ============================================================
 // A2
-// ============================================================
 
-int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
-    if (!values || numberOfValues <= 0 || numberOfBins <= 0) {
-        fprintf(stderr, "getHistogram: invalid input\n");
-        exit(EXIT_FAILURE);
+int *getHistogram(int numberOfValues, double *values, int numberOfBins)
+{
+    if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
+        exit(-99);
     }
 
-    int *bins = (int*)xcalloc((size_t)numberOfBins, sizeof(int));
+    int *histogram = calloc(numberOfBins, sizeof(int));
+    if (histogram == NULL) {
+        exit(-98);
+    }
 
-    double min = DBL_MAX, max = -DBL_MAX;
+    double min = DBL_MAX;
+    double max = -DBL_MAX;
+
     for (int i = 0; i < numberOfValues; i++) {
-        if (values[i] < min) min = values[i];
-        if (values[i] > max) max = values[i];
+        if (values[i] < min) {
+            min = values[i];
+        }
+        if (values[i] > max) {
+            max = values[i];
+        }
     }
 
+    //wenn alle Werte gleich
     if (min == max) {
-        bins[0] = numberOfValues;
-        return bins;
+        histogram[0] = numberOfValues;
+        return histogram;
     }
 
-    double binWidth = (max - min) / (double)numberOfBins;
+    double binWidth = (max - min) / numberOfBins;
 
     for (int i = 0; i < numberOfValues; i++) {
-        int b = (int)((values[i] - min) / binWidth);
-        if (b < 0) b = 0;
-        if (b >= numberOfBins) b = numberOfBins - 1;
-        bins[b]++;
+        int bin = (int)((values[i] - min) / binWidth);
+
+        if (bin == numberOfBins) {
+            bin = numberOfBins - 1;
+        }
+
+        histogram[bin]++;
     }
 
-    return bins;
+    return histogram;
 }
 
-Histogram *createHistogram_empty() {
-    Histogram *h = (Histogram*)xmalloc(sizeof(Histogram));
+Histogram *createHistogram_empty()
+{
+    Histogram *h = malloc(sizeof(Histogram));
+    if (h == NULL) {
+        exit(-98);
+    }
+
     h->numberOfBins = -1;
     h->bins = NULL;
-    h->minimum = 0.0;
-    h->maximum = 0.0;
-    h->binWidth = 0.0;
+    h->minimum = 0;
+    h->maximum = 0;
+    h->binWidth = 0;
+
     return h;
 }
 
-Histogram *createHistogram_bins(int numberOfBins) {
+Histogram *createHistogram_bins(int numberOfBins)
+{
     if (numberOfBins <= 0) {
-        fprintf(stderr, "createHistogram_bins: invalid bins\n");
-        exit(EXIT_FAILURE);
+        exit(-97);
     }
-    Histogram *h = createHistogram_empty();
+
+    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
+
     h->numberOfBins = numberOfBins;
-    h->bins = (int*)xcalloc((size_t)numberOfBins, sizeof(int));
+    h->bins = calloc(numberOfBins, sizeof(int));
+
+    if (h->bins == NULL) {
+        free(h);
+        exit(-96);
+    }
+
     return h;
 }
 
-Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins) {
-    if (!values || numberOfValues <= 0 || numberOfBins <= 0) {
-        fprintf(stderr, "createHistogram_array: invalid input\n");
-        exit(EXIT_FAILURE);
+Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins)
+{
+    if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
+        exit(-95);
     }
 
-    Histogram *h = createHistogram_empty();
+    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
 
-    double min = DBL_MAX, max = -DBL_MAX;
+    double min = DBL_MAX;
+    double max = -DBL_MAX;
+
     for (int i = 0; i < numberOfValues; i++) {
-        if (values[i] < min) min = values[i];
-        if (values[i] > max) max = values[i];
+        if (values[i] < min) {
+            min = values[i];
+        }
+        if (values[i] > max) {
+            max = values[i];
+        }
     }
 
     h->minimum = min;
     h->maximum = max;
     h->numberOfBins = numberOfBins;
+
     h->bins = getHistogram(numberOfValues, values, numberOfBins);
-    h->binWidth = (min == max) ? 0.0 : (max - min) / (double)numberOfBins;
+
+    if (min == max) {
+        h->binWidth = 0.0;
+    } else {
+        h->binWidth = (max - min) / numberOfBins;
+    }
+
     return h;
 }
 
-void deleteHistogram(Histogram *In) {
-    if (!In) return;
+void deleteHistogram(Histogram *In)
+{
+    if (In == NULL) {
+        return;
+    }
+
     free(In->bins);
     free(In);
 }
 
-double computeArea(MMSignal *In) {
-    if (!In || !In->samples || In->numberOfSamples <= 0) {
-        fprintf(stderr, "computeArea: invalid input\n");
-        exit(EXIT_FAILURE);
+double computeArea(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-94);
     }
-    double sum = 0.0;
-    for (int i = 0; i < In->numberOfSamples; i++) sum += In->samples[i];
-    In->area = sum;
-    return sum;
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-93);
+    }
+
+    double area = 0;
+
+    for (int i = 0; i < In->numberOfSamples; i++) {
+        area += In->samples[i];
+    }
+
+    In->area = area;
+    return area;
 }
 
-double computeMean(MMSignal *In) {
-    if (!In || !In->samples || In->numberOfSamples <= 0) {
-        fprintf(stderr, "computeMean: invalid input\n");
-        exit(EXIT_FAILURE);
+double computeMean(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-92);
     }
-    In->mean = computeArea(In) / (double)In->numberOfSamples;
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-91);
+    }
+
+    In->mean = computeArea(In) / In->numberOfSamples;
     return In->mean;
 }
 
-double computeStandardDeviation(MMSignal *In) {
-    if (!In || !In->samples || In->numberOfSamples <= 0) {
-        fprintf(stderr, "computeStandardDeviation: invalid input\n");
-        exit(EXIT_FAILURE);
+double computeStandardDeviation(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-90);
     }
 
-    double mu = computeMean(In);
-    double sum = 0.0;
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-89);
+    }
+
+    double mean = computeMean(In);
+
+    double sum = 0;
 
     for (int i = 0; i < In->numberOfSamples; i++) {
-        double d = In->samples[i] - mu;
-        sum += d * d;
+        double diff = In->samples[i] - mean;
+        sum += diff * diff;
     }
 
-    return sqrt(sum / (double)In->numberOfSamples); // population std dev
+    return sqrt(sum / In->numberOfSamples);
 }
 
-static int cmp_double(const void *a, const void *b) {
-    double da = *(const double*)a;
-    double db = *(const double*)b;
-    if (da < db) return -1;
-    if (da > db) return 1;
-    return 0;
+double bubbleSort(double *array, int arraySize) {
+    for (int i = 0; i < arraySize - 1; i++) {
+        for (int j = 0; j < arraySize - i - 1; j++) {
+            if (array[j] > array[j + 1]) {
+                double temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+        }
+    }
 }
 
-double computeMedian(MMSignal *In) {
-    if (!In || !In->samples || In->numberOfSamples <= 0) {
-        fprintf(stderr, "computeMedian: invalid input\n");
-        exit(EXIT_FAILURE);
+double computeMedian(MMSignal *In)
+{
+    if (In == NULL) {
+        exit(-88);
+    }
+
+    if (In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(-87);
     }
 
     int n = In->numberOfSamples;
-    double *tmp = (double*)xmalloc((size_t)n * sizeof(double));
-    memcpy(tmp, In->samples, (size_t)n * sizeof(double));
 
-    qsort(tmp, (size_t)n, sizeof(double), cmp_double);
+    double *tmp = malloc(n * sizeof(double));
+    if (tmp == NULL) {
+        exit(-86);
+    }
+
+    for (int i = 0; i < n; i++) {
+        tmp[i] = In->samples[i];
+    }
+
+    bubbleSort(tmp, n);
 
     double median;
+
     if (n % 2 == 0) {
-        median = (tmp[n/2 - 1] + tmp[n/2]) / 2.0;
+        median = (tmp[n / 2 - 1] + tmp[n / 2]) / 2;
     } else {
-        median = tmp[n/2];
+        median = tmp[n / 2];
     }
 
     free(tmp);
     return median;
 }
 
+//TODO: sattelstelle?
 LocalExtrema *computeExtrema(MMSignal *In) {
-    if (!In || !In->samples || In->numberOfSamples < 3) {
-        fprintf(stderr, "computeExtrema: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
+    LocalExtrema *newExtrema = malloc(sizeof(LocalExtrema));
+    newExtrema->numberOfMinimumPositions = 0;
+    newExtrema->numberOfMaximumPositions = 0;
+    newExtrema->maximumPositionArray = malloc(BLOCK_SIZE);
+    newExtrema->minimumPositionArray = malloc(BLOCK_SIZE);
 
-    LocalExtrema *e = (LocalExtrema*)xmalloc(sizeof(LocalExtrema));
-    e->numberOfMinimumPositions = 0;
-    e->numberOfMaximumPositions = 0;
+    int currentMaxArraySize = BLOCK_SIZE;
+    int currentMinArraySize = BLOCK_SIZE;
 
-    int capMin = 16, capMax = 16;
-    e->minimumPositionArray = (int*)xmalloc((size_t)capMin * sizeof(int));
-    e->maximumPositionArray = (int*)xmalloc((size_t)capMax * sizeof(int));
+    for (int i = 1; i < In->numberOfSamples-1; i++) {
+        if (In->samples[i - 1] < In->samples[i] && In->samples[i + 1] < In->samples[i]) {
+            newExtrema->numberOfMinimumPositions+=1;
 
-    for (int i = 1; i < In->numberOfSamples - 1; i++) {
-        double a = In->samples[i - 1];
-        double b = In->samples[i];
-        double c = In->samples[i + 1];
+            if (newExtrema->numberOfMinimumPositions * sizeof(int) > currentMaxArraySize) {
+                newExtrema->minimumPositionArray = realloc(newExtrema->minimumPositionArray, currentMinArraySize + BLOCK_SIZE);
 
-        if (a < b && b > c) { // local maximum
-            if (e->numberOfMaximumPositions >= capMax) {
-                capMax *= 2;
-                e->maximumPositionArray = (int*)xrealloc(e->maximumPositionArray, (size_t)capMax * sizeof(int));
+                if (newExtrema->minimumPositionArray == NULL) {
+                    exit(-85);
+                }
+
+                currentMaxArraySize += BLOCK_SIZE;
             }
-            e->maximumPositionArray[e->numberOfMaximumPositions++] = i;
-        } else if (a > b && b < c) { // local minimum
-            if (e->numberOfMinimumPositions >= capMin) {
-                capMin *= 2;
-                e->minimumPositionArray = (int*)xrealloc(e->minimumPositionArray, (size_t)capMin * sizeof(int));
+
+            newExtrema->maximumPositionArray[newExtrema->numberOfMinimumPositions - 1] = i;
+        } else if (In->samples[i - 1] > In->samples[i] && In->samples[i + 1] > In->samples[i]) {
+            newExtrema->numberOfMaximumPositions+=1;
+
+            if (newExtrema->numberOfMaximumPositions * sizeof(int) > currentMinArraySize) {
+                newExtrema->maximumPositionArray = realloc(newExtrema->maximumPositionArray, currentMaxArraySize + BLOCK_SIZE);
+
+                if (newExtrema->maximumPositionArray == NULL) {
+                    exit(-84);
+                }
+
+                currentMinArraySize += BLOCK_SIZE;
             }
-            e->minimumPositionArray[e->numberOfMinimumPositions++] = i;
+
+            newExtrema->maximumPositionArray[newExtrema->numberOfMaximumPositions - 1] = i;
         }
     }
 
-    // shrink to exact
-    if (e->numberOfMinimumPositions == 0) {
-        free(e->minimumPositionArray);
-        e->minimumPositionArray = NULL;
-    } else {
-        e->minimumPositionArray = (int*)xrealloc(e->minimumPositionArray,
-                                                (size_t)e->numberOfMinimumPositions * sizeof(int));
-    }
-
-    if (e->numberOfMaximumPositions == 0) {
-        free(e->maximumPositionArray);
-        e->maximumPositionArray = NULL;
-    } else {
-        e->maximumPositionArray = (int*)xrealloc(e->maximumPositionArray,
-                                                (size_t)e->numberOfMaximumPositions * sizeof(int));
-    }
-
-    In->localExtrema = e;
-    return e;
+    return newExtrema;
 }
 
-double computeEntropy(Histogram *histogramIn) {
-    if (!histogramIn || !histogramIn->bins || histogramIn->numberOfBins <= 0) {
-        fprintf(stderr, "computeEntropy: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
+// A 3
 
-    int total = 0;
-    for (int i = 0; i < histogramIn->numberOfBins; i++) total += histogramIn->bins[i];
-    if (total <= 0) return 0.0;
+MMSignal *approximateGaussianCurve(int pascalLineNumber) {
 
-    double H = 0.0;
-    for (int i = 0; i < histogramIn->numberOfBins; i++) {
-        int c = histogramIn->bins[i];
-        if (c == 0) continue;
-        double p = (double)c / (double)total;
-        H += -p * (log(p) / log(2.0)); // log2(p)
-    }
-    return H;
 }
 
-// ============================================================
-// A3
-// ============================================================
+int main() {
+    //test for median //TODO: REMOVE
+    double arr[] = {1,3,3,5,7,8,10};
+    int i = 7;
 
-MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
-    if (!In1 || !In2 || !In1->samples || !In2->samples || In1->numberOfSamples <= 0 || In2->numberOfSamples <= 0) {
-        fprintf(stderr, "convoluteSignals: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
+    printf("%f", computeMedian(createSignal_array(i, arr)));
 
-    int N1 = In1->numberOfSamples;
-    int N2 = In2->numberOfSamples;
-    int Ny = N1 + N2 - 1;
-
-    double *y = (double*)xcalloc((size_t)Ny, sizeof(double));
-
-    for (int n = 0; n < Ny; n++) {
-        double sum = 0.0;
-        int kmin = (n - (N2 - 1) > 0) ? (n - (N2 - 1)) : 0;
-        int kmax = (n < N1 - 1) ? n : (N1 - 1);
-
-        for (int k = kmin; k <= kmax; k++) {
-            sum += In1->samples[k] * In2->samples[n - k];
-        }
-        y[n] = sum;
-    }
-
-    return createSignal_array(Ny, y);
-}
-
-MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
-    if (pascalLineNumber < 1) {
-        fprintf(stderr, "approximateGaussianBellCurve: invalid n\n");
-        exit(EXIT_FAILURE);
-    }
-
-    int n = pascalLineNumber;
-    int N = n + 1;
-    double *coeff = (double*)xcalloc((size_t)N, sizeof(double));
-
-    coeff[0] = 1.0;
-    for (int k = 1; k <= n; k++) {
-        coeff[k] = coeff[k - 1] * (double)(n - (k - 1)) / (double)k;
-    }
-
-    // normalize so sum = 1
-    double sum = 0.0;
-    for (int k = 0; k <= n; k++) sum += coeff[k];
-    for (int k = 0; k <= n; k++) coeff[k] /= sum;
-
-    return createSignal_array(N, coeff);
-}
-
-// ============================================================
-// A4
-// ============================================================
-
-void dft(int numberOfValues, double* realIn, double* imaginaryIn,
-         double* realOut, double* imaginaryOut, int Direction) {
-
-    if (numberOfValues <= 0 || !realIn || !imaginaryIn || !realOut || !imaginaryOut) {
-        fprintf(stderr, "dft: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
-    if (Direction != 1 && Direction != -1) {
-        fprintf(stderr, "dft: Direction must be 1 or -1\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int k = 0; k < numberOfValues; k++) {
-        double sumRe = 0.0;
-        double sumIm = 0.0;
-
-        for (int n = 0; n < numberOfValues; n++) {
-            double angle = 2.0 * M_PI * (double)k * (double)n / (double)numberOfValues;
-            double c = cos(angle);
-            double s = sin(angle);
-
-            double re = realIn[n];
-            double im = imaginaryIn[n];
-
-            if (Direction == 1) {
-                // (re + j im) * (c - j s)
-                sumRe += re * c + im * s;
-                sumIm += im * c - re * s;
-            } else {
-                // (re + j im) * (c + j s)
-                sumRe += re * c - im * s;
-                sumIm += im * c + re * s;
-            }
-        }
-
-        if (Direction == -1) {
-            sumRe /= (double)numberOfValues;
-            sumIm /= (double)numberOfValues;
-        }
-
-        realOut[k] = sumRe;
-        imaginaryOut[k] = sumIm;
-    }
-}
-
-void getCartesianToPolar(int numberOfValues, double* realIn, double* imaginaryIn,
-                         double* amplitudesOut, double* angelsOut) {
-    if (numberOfValues <= 0 || !realIn || !imaginaryIn || !amplitudesOut || !angelsOut) {
-        fprintf(stderr, "getCartesianToPolar: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < numberOfValues; i++) {
-        double re = realIn[i];
-        double im = imaginaryIn[i];
-        amplitudesOut[i] = sqrt(re * re + im * im);
-        angelsOut[i] = atan2(im, re);
-    }
-}
-
-void getPolarToCartesian(int numberOfValues, double* amplitudesIn, double* angelsIn,
-                         double* realOut, double* imaginaryOut) {
-    if (numberOfValues <= 0 || !amplitudesIn || !angelsIn || !realOut || !imaginaryOut) {
-        fprintf(stderr, "getPolarToCartesian: invalid input\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < numberOfValues; i++) {
-        double A = amplitudesIn[i];
-        double phi = angelsIn[i];
-        realOut[i] = A * cos(phi);
-        imaginaryOut[i] = A * sin(phi);
-    }
+    free(arr);
+    return 0;
 }
