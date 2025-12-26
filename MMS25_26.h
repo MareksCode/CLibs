@@ -25,7 +25,7 @@ typedef struct {
     LocalExtrema *localExtrema;
 } MMSignal;
 
-//A1
+//AUFGABE 1
 double interpolateLine(double x1, double y1, double x2, double y2, double xb);
 double *scaleValuesInArray(int numberOfValues, double *values, double minimum, double scalingFactor);
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude);
@@ -37,7 +37,7 @@ void deleteMMSignal(MMSignal *In);
 void writeSignal(MMSignal *In, char * fileName);
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude);
 
-//A2
+//AUFGABE 2
 int *getHistogram(int numberOfValues, double *values, int numberOfBins);
 Histogram *createHistogram_empty();
 Histogram *createHistogram_bins(int numberOfBins);
@@ -50,11 +50,11 @@ double computeMedian(MMSignal *In);
 LocalExtrema *computeExtrema(MMSignal *In);
 double computeEntropy(Histogram *histogramIn);
 
-//A3
+//Aufgabe 3
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2);
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber);
 
-//A4
+//Aufgabe 4
 //Direction = 1 Forward FourierTransformation, Direction=-1 Backward FourierTransformation
 void dft(int numberOfValues, double* realIn, double* imaginaryIn, double* realOut, double* imaginaryOut,int Direction);
 void getCartesianToPolar(int numberOfValues, double* realIn, double* imaginaryIn, double* amplitudesOut, double* angelsOut);
