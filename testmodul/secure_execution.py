@@ -1,9 +1,11 @@
 from ctypes import *
 import logging
-import threading
 import loader
+from strukturen import *
 import multiprocessing
 from collections.abc import Sequence
+import matplotlib.pyplot as plt
+
 
 # Logging-Konfiguration
 class Executioner:    
@@ -18,26 +20,39 @@ class Executioner:
             Wandelt ctypes-Array oder double* in String um
             """
             values = []
-
             if isinstance(result, Array):
                 values = list(result)
-
             elif isinstance(result, POINTER(c_double)):
                 for i in range(length):
                     values.append(result[i])
-
             else:
                 return str(result)
-
             return ",".join(f"{v:.6f}" for v in values)
-        
+
         lib = loader.load_lib()
+
+        #formatieren der argumente, aber neu da sonst nicht pickable
         try:
             func = getattr(lib[0], funcname)
             converted_args = []
             array_length = 0
             for arg in args:
-                if isinstance(arg, Sequence) and not isinstance(arg, (str, bytes)):
+                if isinstance(arg, Histogram):
+                    new_obj = Histogram()
+                    new_obj.insert_values(*arg.get_values())
+                    converted_args.append(new_obj)
+                
+                elif isinstance(arg, MMSignal):
+                    new_obj = MMSignal()
+                    new_obj.insert_values(*arg.get_values())
+                    converted_args.append(new_obj)
+                
+                elif isinstance(arg, LocalExtrema):
+                    new_obj = LocalExtrema()
+                    new_obj.insert_values(*arg.get_values())
+                    converted_args.append(new_obj)
+
+                elif isinstance(arg, Sequence) and not isinstance(arg, (str, bytes)):
                     array_length = len(arg)
                     arr_type = c_double * len(arg)
                     c_array = arr_type(*arg)
@@ -45,11 +60,35 @@ class Executioner:
                 else:
                     converted_args.append(arg)
 
+            #ausführen der funktion
             result = func(*converted_args)
+
+
             print(type(result))
+
+            #todo: rückumwandlunng in objekte
             if isinstance(result, (Array, POINTER(c_double))):
                 result = c_array_to_string(result, array_length)
+            
+            if isinstance(result, POINTER(lib[1])):
+                print("mmsignal detected")
+                c_sig = result.contents
+                py_sig = MMSignal()
+                samples = [c_sig.samples[i] for i in range(c_sig.numberOfSamples)]
+
+                py_sig.insert_values(
+                    numberOfSamples=c_sig.numberOfSamples,
+                    samples=samples,
+                    area=c_sig.area,
+                    mean=c_sig.mean,
+                    localExtrema=[]
+                )
+                plt.plot(samples)
+                plt.show()
+                result = py_sig
+
             q.put(result)
+            
         except Exception as e:
             q.put(str(e))
 

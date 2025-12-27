@@ -1,6 +1,6 @@
 import ctypes
 def load_lib():
-    lib = ctypes.CDLL("./mms25.o")
+    lib = ctypes.CDLL("./MMS25_26.co")
 
     # Einfach alle Signaturen setzen
 
@@ -56,8 +56,8 @@ def load_lib():
     lib.createSignal_file.restype = ctypes.POINTER(MMSignal)
 
     # noch nicht da wuuuu
-    #lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
-    #lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
+    lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
+    lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
 
     """
     #aufgabe 2
