@@ -4,6 +4,8 @@ import random
 import multiprocessing
 from ctypes import *
 from aufgabe_1_testfunc import *
+import matplotlib.pyplot as plt
+
 
 
 def run_test(test_function, value):
@@ -13,7 +15,10 @@ def run_test(test_function, value):
     process = exec.run_test_process(test_function, q, value)
     process.join()
     if not q.empty():
-        logging.info("Ergebniss: %s", q.get())
+        val = q.get()
+        logging.info("Ergebniss: %s", val)
+        return val
+
     else :
         logging.info("Ergebniss: exit-code: %s", process.exitcode)
     
@@ -47,8 +52,9 @@ def test_scaleValuesInArray():
 def test_writeCreateArrayFile(): 
     test_function = "createSineSignal"
     test_value = [(100, 100, 2.0)]
-    run_test(test_function, test_value)
-    return
+    signal = run_test(test_function, test_value)
+    plt.plot(signal.samples)
+    plt.show()
 
 
 

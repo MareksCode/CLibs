@@ -4,7 +4,6 @@ import loader
 from strukturen import *
 import multiprocessing
 from collections.abc import Sequence
-import matplotlib.pyplot as plt
 
 
 # Logging-Konfiguration
@@ -76,15 +75,23 @@ class Executioner:
                 py_sig = MMSignal()
                 samples = [c_sig.samples[i] for i in range(c_sig.numberOfSamples)]
 
+                local_extrema = None
+                if c_sig.localExtrema:
+                    c_ext = c_sig.localExtrema.contents
+
+                    minimum_positions = [c_ext.minimumPositionArray[i] for i in range(c_ext.numberOfMinimumPositions)]
+                    maximum_positions = [c_ext.maximumPositionArray[i] for i in range(c_ext.numberOfMaximumPositions)]
+
+                    local_extrema = LocalExtrema(minimum_positions, maximum_positions)
+
                 py_sig.insert_values(
                     numberOfSamples=c_sig.numberOfSamples,
                     samples=samples,
                     area=c_sig.area,
                     mean=c_sig.mean,
-                    localExtrema=[]
+                    localExtrema=local_extrema
                 )
-                plt.plot(samples)
-                plt.show()
+
                 result = py_sig
 
             q.put(result)

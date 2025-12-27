@@ -10,3 +10,4 @@ aoc-day1.py
 *.go
 *.pyc
 *.log
+*.leonie

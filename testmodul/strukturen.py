@@ -29,11 +29,11 @@ class LocalExtrema_c(Structure):
         ("maximumPositionArray", POINTER(c_int)),
     ]
 class LocalExtrema():
-    def __init__(self):
-        self.numberOfMinimumPositions = 0
-        self.minimumPositionArray = [int]
-        self.numberOfMaximumPositions = 0
-        self.maximumPositionArray = [int]
+    def __init__(self, minimum_positions, maximum_positions):
+        self.numberOfMinimumPositions = len(minimum_positions)
+        self.minimumPositionArray = minimum_positions
+        self.numberOfMaximumPositions = len(maximum_positions)
+        self.maximumPositionArray = maximum_positions
     
     def insert_values(self, 
                       numberOfMinimumPositions: int, 

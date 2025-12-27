@@ -1,6 +1,7 @@
 import ctypes
 def load_lib():
     lib = ctypes.CDLL("./MMS25_26.co")
+    #lib = ctypes.CDLL("./mms.co")
 
     # Einfach alle Signaturen setzen
 
