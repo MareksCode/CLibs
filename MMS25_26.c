@@ -82,7 +82,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     }
 
     for (int i = 0; i < totalSamples; i+=1) {
-        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2); //2 PI is one period
+        sineArray[i] = sin(((double)i/(double)samplesPerPeriod)* PI*2) * amplitude; //2 PI is one period
     }
 
     return sineArray;
