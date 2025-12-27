@@ -48,5 +48,5 @@ class compiler():
             return False
 
 if __name__ == "__main__":
-    o = compiler("mms", filepath="i:\\codes\\c\\CLibs\\")
+    o = compiler("MMS25_26", filepath="i:\\codes\\c\\CLibs\\")
     o.compile_library()

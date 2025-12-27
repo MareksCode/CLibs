@@ -94,10 +94,29 @@ class Executioner:
 
                 result = py_sig
 
+
+            if isinstance(result, POINTER(lib[2])):
+                print("histogram detected")
+                c_sig = result.contents
+                py_sig = Histogram()    
+
+                bins = [c_sig.bins[i] for i in range(c_sig.numberOfBins)]
+
+                py_sig.insert_values(
+                    numberOfBins=c_sig.numberOfBins,
+                    bins=bins,
+                    minimum=c_sig.minimum,
+                    maximum=c_sig.maximum,
+                    binWidth=c_sig.binWidth
+                )      
+
+                result = py_sig  
+
             q.put(result)
             
         except Exception as e:
             q.put(str(e))
+            print(e.__traceback__)
 
 
 if __name__ == "__main__":

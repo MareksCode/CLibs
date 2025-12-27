@@ -1,4 +1,14 @@
 from ctypes import *
+
+class Histogramm_c(Structure):
+    _fields_ = [
+        ("numberOfBins", c_int),
+        ("bins", POINTER(c_int)),
+        ("minimum", c_double),
+        ("maximum", c_double),
+        ("binWidth", c_double),
+    ]
+    
 class Histogram():
     def __init__(self):
         self.numberOfBins = 0

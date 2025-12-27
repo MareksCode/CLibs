@@ -60,13 +60,13 @@ def load_lib():
     lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
     lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
 
-    """
+    
     #aufgabe 2
     lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
     lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
 
     lib.createHistogram_empty.argtypes = []
-    lib.createtHistogram_empty.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
 
     lib.createHistogram_bins.argtypes = [ctypes.c_int]
     lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
@@ -76,8 +76,8 @@ def load_lib():
     ]
     lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
 
-    lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
-    lib.computeEntropy.restype = ctypes.c_double
+    #lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
+    #lib.computeEntropy.restype = ctypes.c_double
 
     lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
     lib.computeArea.restype = ctypes.c_double
@@ -94,9 +94,11 @@ def load_lib():
     lib.computeExtrema.argtypes = [ctypes.POINTER(MMSignal)]
     lib.computeExtrema.restype = ctypes.POINTER(LocalExtrema)
 
-    lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
-    lib.computeEntropy.restype = ctypes.c_double
-    """
+    #lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
+    #lib.computeEntropy.restype = ctypes.c_double
+    
     
     return lib, MMSignal, Histogram, LocalExtrema
 
+if __name__ == "__main__":
+    lib, MMSignal, Histogram, LocalExtrema = load_lib()
