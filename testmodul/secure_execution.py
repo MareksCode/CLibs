@@ -96,7 +96,6 @@ class Executioner:
 
 
             if isinstance(result, POINTER(lib[2])):
-                print("histogram detected")
                 c_sig = result.contents
                 py_sig = Histogram()    
 
