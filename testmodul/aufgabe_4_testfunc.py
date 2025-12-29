@@ -10,6 +10,20 @@ def dft(numberOfValues, realIn, imaginaryIn, realOut, imaginaryOut, Direction):
             realOut[k] += realIn[n] * np.cos(angle) + imaginaryIn[n] * np.sin(angle)
             imaginaryOut[k] += -realIn[n] * np.sin(angle) + imaginaryIn[n] * np.cos(angle)
 
+def cartToPolar(realIn: list, imgIn: list, ampOut: list, angOut: list): 
+    ampOut.clear()
+    angOut.clear()
+    for i in range(len(realIn)):
+        ampOut.append(np.sqrt(realIn[i]**2 + imgIn[i]**2))
+        angOut.append(np.arctan2(imgIn[i], realIn[i]))
+
+def polarToCart(ampIn: list, angIn: list, realOut: list, imgOut: list): 
+    realOut.clear()
+    imgOut.clear()
+    for i in range(len(ampIn)):
+        realOut.append(ampIn[i] * np.cos(angIn[i]))
+        imgOut.append(ampIn[i] * np.sin(angIn[i]))
+
 def create_signal(N):
     x = np.linspace(0, 2 * np.pi, N)
     
@@ -50,6 +64,7 @@ if __name__ == "__main__":
     imaginaryOut = [0.0] * N
     
     dft(N, realIn, imaginaryIn, realOut, imaginaryOut, Direction=1)
+
     plot_signal_and_spectrum(x, signal, realOut, imaginaryOut, N)
 
     #dft(N, realOut, imaginaryOut, realIn, imaginaryIn, Direction=-1)

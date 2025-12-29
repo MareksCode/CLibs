@@ -11,3 +11,4 @@ aoc-day1.py
 *.pyc
 *.log
 *.leonie
+/andere

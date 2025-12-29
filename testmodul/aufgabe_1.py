@@ -1,5 +1,5 @@
 import logging
-from secure_execution import Executioner
+from secure_execution_v2 import Executioner
 import random
 import multiprocessing
 from ctypes import *
@@ -28,6 +28,7 @@ def test_interpolateLine():
     test_values = [[(1.0, 2.0, 3.0, 4.0, 5.0), False],
                    [(1.0, 2.0, 3.0, 4.0, 2.5), True],
                    [(1.0, 2.0, 3.0, 4.0, -0.1), False],
+                   [(1.0, 2.0, 1.0, 2.0, 1.0), False],
                    [(1.0, None, 3.0, 4.0, 5.0), False]]
     for value in test_values: 
         resp = value[1]
@@ -52,7 +53,10 @@ def test_scaleValuesInArray():
 def test_writeCreateArrayFile(): 
     test_function = "createSineSignal"
     test_value = [(100, 100, 2.0)]
-    signal = run_test(test_function, test_value)
+    signal, _ = run_test(test_function, test_value)
+    run_test("writeSignal", [(signal, "sine_output.txt")])
+    values = [0.0] * 100
+    out = run_test("readArrayFile", [("sine_output.txt", values)])
     plt.plot(signal.samples)
     plt.show()
 
