@@ -609,13 +609,13 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
 
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 1) {
-        exit(-82);
+        exit(-79);
     }
 
     //Zeile n: n elemente
     double *values = malloc((pascalLineNumber)*sizeof(double));
     if (values== NULL) {
-        exit(-82);
+        exit(-78);
     }
     //Erste Zahl der Reihe ist immer 1
     values[0] = 1;
