@@ -549,6 +549,29 @@ LocalExtrema *computeExtrema(MMSignal *In) {
     return newExtrema;
 }
 
+
+double computeEntropy(Histogram *histogramIn) {
+    if (histogramIn == NULL || histogramIn->bins == NULL || histogramIn->numberOfBins <= 0) {
+        exit(-83);
+    }
+
+    double entropy = 0;
+    double totalValues = 0;
+
+    for(int i = 0; i<histogramIn->numberOfBins; i+=1) {
+        totalValues += histogramIn->bins[i];
+    }
+
+    //relative Häufigkeit berechnen
+    for (int i = 0; i < histogramIn->numberOfBins; i+=1) {
+        if (histogramIn->bins[i] > 0) {
+            double probability = (double)histogramIn->bins[i] / totalValues;
+            entropy = entropy - probability * log2(probability);
+        }
+    }
+    return entropy;
+}
+
 // A 3
 
 MMSignal *approximateGaussianCurve(int pascalLineNumber) {
