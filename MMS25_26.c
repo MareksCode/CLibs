@@ -47,7 +47,7 @@ double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
 //TODO: Nachfragen, ob die funktion richtig angewendet wird (mit main methoden beispielen)
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     if (xb > x2 || xb < x1) {
-        exit(6);
+        exit(4);
     }
     if (x1==x2) {
         exit(5);
@@ -65,7 +65,7 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
 
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
     if (numberOfValues <= 0) {
-        exit(7);
+        exit(6);
     }
 
     for (int i = 0; i< numberOfValues; i++) {
@@ -81,7 +81,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
 
     if (sineArray == NULL) {
         printf("creating the sine array failed\n");
-        exit(8);
+        exit(7);
     }
 
     for (int i = 0; i < totalSamples; i+=1) {
@@ -282,12 +282,12 @@ MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplit
 int *getHistogram(int numberOfValues, double *values, int numberOfBins)
 {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
-        exit(-99);
+        exit(8);
     }
 
     int *histogram = calloc(numberOfBins, sizeof(int));
     if (histogram == NULL) {
-        exit(-98);
+        exit(9);
     }
 
     double min = DBL_MAX;
@@ -327,7 +327,7 @@ Histogram *createHistogram_empty()
 {
     Histogram *h = malloc(sizeof(Histogram));
     if (h == NULL) {
-        exit(-98);
+        exit(10);
     }
 
     h->numberOfBins = -1;
@@ -342,7 +342,7 @@ Histogram *createHistogram_empty()
 Histogram *createHistogram_bins(int numberOfBins)
 {
     if (numberOfBins <= 0) {
-        exit(-97);
+        exit(11);
     }
 
     Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
@@ -352,7 +352,7 @@ Histogram *createHistogram_bins(int numberOfBins)
 
     if (h->bins == NULL) {
         free(h);
-        exit(-96);
+        exit(12);
     }
 
     return h;
@@ -361,7 +361,7 @@ Histogram *createHistogram_bins(int numberOfBins)
 Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins)
 {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
-        exit(-95);
+        exit(13);
     }
 
     Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
@@ -406,11 +406,11 @@ void deleteHistogram(Histogram *In)
 double computeArea(MMSignal *In)
 {
     if (In == NULL) {
-        exit(-94);
+        exit(14);
     }
 
     if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(-93);
+        exit(15);
     }
 
     double area = 0;
@@ -426,11 +426,11 @@ double computeArea(MMSignal *In)
 double computeMean(MMSignal *In)
 {
     if (In == NULL) {
-        exit(-92);
+        exit(16);
     }
 
     if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(-91);
+        exit(17);
     }
 
     In->mean = computeArea(In) / In->numberOfSamples;
@@ -440,11 +440,11 @@ double computeMean(MMSignal *In)
 double computeStandardDeviation(MMSignal *In)
 {
     if (In == NULL) {
-        exit(-90);
+        exit(18);
     }
 
     if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(-89);
+        exit(19);
     }
 
     double mean = computeMean(In);
@@ -474,18 +474,18 @@ double bubbleSort(double *array, int arraySize) {
 double computeMedian(MMSignal *In)
 {
     if (In == NULL) {
-        exit(-88);
+        exit(20);
     }
 
     if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(-87);
+        exit(21);
     }
 
     int n = In->numberOfSamples;
 
     double *tmp = malloc(n * sizeof(double));
     if (tmp == NULL) {
-        exit(-86);
+        exit(22);
     }
 
     for (int i = 0; i < n; i++) {
@@ -525,7 +525,7 @@ LocalExtrema *computeExtrema(MMSignal *In) {
                 newExtrema->minimumPositionArray = realloc(newExtrema->minimumPositionArray, currentMinArraySize + BLOCK_SIZE);
 
                 if (newExtrema->minimumPositionArray == NULL) {
-                    exit(-85);
+                    exit(23);
                 }
 
                 currentMaxArraySize += BLOCK_SIZE;
@@ -539,7 +539,7 @@ LocalExtrema *computeExtrema(MMSignal *In) {
                 newExtrema->maximumPositionArray = realloc(newExtrema->maximumPositionArray, currentMaxArraySize + BLOCK_SIZE);
 
                 if (newExtrema->maximumPositionArray == NULL) {
-                    exit(-84);
+                    exit(24);
                 }
 
                 currentMinArraySize += BLOCK_SIZE;
@@ -555,7 +555,7 @@ LocalExtrema *computeExtrema(MMSignal *In) {
 
 double computeEntropy(Histogram *histogramIn) {
     if (histogramIn == NULL || histogramIn->bins == NULL || histogramIn->numberOfBins <= 0) {
-        exit(-83);
+        exit(25);
     }
 
     double entropy = 0;
@@ -578,14 +578,14 @@ double computeEntropy(Histogram *histogramIn) {
 // A 3
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     if (In1 == NULL || In2 == NULL || In1->samples==NULL || In2->samples==NULL || In1->numberOfSamples <= 0 || In2->numberOfSamples <= 0) {
-        exit(-82);
+        exit(26);
     }
 
     int length = In1->numberOfSamples + In2->numberOfSamples - 1;
     double *result = malloc(length*sizeof(double));
 
     if (result == NULL) {
-        exit(-81);
+        exit(27);
     }
 
     for (int i = 0; i < length; i+=1) {
@@ -601,7 +601,7 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     MMSignal *resultSignal = createSignal_array(length, result);
     if (resultSignal==NULL) {
         free(result);
-        exit(-80);
+        exit(28);
     }
 
     return resultSignal;
@@ -609,13 +609,13 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
 
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 1) {
-        exit(-79);
+        exit(29);
     }
 
     //Zeile n: n elemente
     double *values = malloc((pascalLineNumber)*sizeof(double));
     if (values== NULL) {
-        exit(-78);
+        exit(-30);
     }
     //Erste Zahl der Reihe ist immer 1
     values[0] = 1;
