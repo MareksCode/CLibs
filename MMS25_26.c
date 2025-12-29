@@ -576,6 +576,36 @@ double computeEntropy(Histogram *histogramIn) {
 }
 
 // A 3
+MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
+    if (In1 == NULL || In2 == NULL || In1->samples==NULL || In2->samples==NULL || In1->numberOfSamples <= 0 || In2->numberOfSamples <= 0) {
+        exit(-82);
+    }
+
+    int length = In1->numberOfSamples + In2->numberOfSamples - 1;
+    double *result = malloc(length*sizeof(double));
+
+    if (result == NULL) {
+        exit(-81);
+    }
+
+    for (int i = 0; i < length; i+=1) {
+        result[i] = 0;
+    }
+
+    for (int i = 0; i < In1->numberOfSamples; i+=1) {
+        for (int j = 0; j < In2->numberOfSamples; j+=1) {
+            result[i+j] = result[i+j] + In1->samples[i] * In2->samples[j];
+        }
+    }
+
+    MMSignal *resultSignal = createSignal_array(length, result);
+    if (resultSignal==NULL) {
+        free(result);
+        exit(-80);
+    }
+
+    return resultSignal;
+}
 
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 1) {
