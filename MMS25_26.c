@@ -49,6 +49,9 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     if (xb > x2 || xb < x1) {
         exit(6);
     }
+    if (x1==x2) {
+        exit(5);
+    }
 
     double smallerX = x1;
     if (x2 < x1) {
@@ -575,7 +578,25 @@ double computeEntropy(Histogram *histogramIn) {
 // A 3
 
 MMSignal *approximateGaussianCurve(int pascalLineNumber) {
+    if (pascalLineNumber < 1) {
+        exit(-82);
+    }
 
+    //Zeile n: n elemente
+    double *values = malloc((pascalLineNumber)*sizeof(double));
+    if (values== NULL) {
+        exit(-82);
+    }
+    //Erste Zahl der Reihe ist immer 1
+    values[0] = 1;
+
+    for (int i = 1; i < pascalLineNumber; i++) {
+        values[i] = values[i-1] * (pascalLineNumber - i) / i;
+    }
+
+    MMSignal *pascalSignal = createSignal_array(pascalLineNumber, values);
+
+    return pascalSignal;
 }
 
 int main() {
