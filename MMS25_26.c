@@ -577,7 +577,7 @@ double computeEntropy(Histogram *histogramIn) {
 
 // A 3
 
-MMSignal *approximateGaussianCurve(int pascalLineNumber) {
+MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 1) {
         exit(-82);
     }
