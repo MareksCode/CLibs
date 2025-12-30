@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from collections import deque
 
 # Logging-Konfiguration
+@DeprecationWarning
 class Executioner:    
     def __init__(self):
         self._keep_alive = []
