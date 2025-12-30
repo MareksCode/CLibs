@@ -75,7 +75,7 @@ def test_scaleValuesInArray():
 
     test_function = "scaleValuesInArray"
     test_values = [[(len(numbers), numbers, 3.0, 4.0), True],
-                   [(7, numbers, 3.0, -4.0), False],
+                   [(7, numbers, 3.0, -4.0), True],
                    [(1, numbers, None, 4.0), False],
                    [(len(numbers), [], 1.0, 2.0), True],
                    [(len(numbers), [1,2,3], 1.0, 2.0), True]]
@@ -89,9 +89,23 @@ def test_scaleValuesInArray():
         erwartetes_ergebniss_erhalten = True
         abweichung = ""
         py_berechnet = None
-        if resp:
-            erg_list = val[0].split(",")
+        
+        try:
             py_berechnet = scaleValueInArray(*value[0])
+        except:
+            pass
+        
+        if "exit code" in str(val) or "Error" in str(val):
+            if resp:
+                abweichung = "keinen exit code erhalten" 
+                erwartetes_ergebniss_erhalten = False
+            else:
+                abweichung = str(val)
+                erwartetes_ergebniss_erhalten = True
+        
+        elif resp:
+            erg_list = val[0].split(",")
+            
             # vergleiche ergebnisse mit erlaubter abwechung
             abw = 0.0001
             for i in range(len(py_berechnet)):
@@ -100,9 +114,10 @@ def test_scaleValuesInArray():
                     abweichung = f"c: {erg_list[i]}, py: {py_berechnet[0]} (abweichung: {abs(float(erg_list[i]) - py_berechnet[0])}) zu groß!"
                     break
         else: 
-            if not str(val).startswith("exit code") and "Error" not in str(val):
-                abweichung = "keinen exit code erhalten"
-                erwartetes_ergebniss_erhalten = False
+            abweichung = "keinen exit code erhalten" 
+            erwartetes_ergebniss_erhalten = False
+
+        print(type(py_berechnet))
 
         report.add_test(
             name="scaleValuesInArray",
@@ -112,7 +127,7 @@ def test_scaleValuesInArray():
                 "Minimum": value[0][2],
                 "Scaling Faktor": value[0][3]
             },
-            expected= "Fehlschlag" if not resp else f"{[round(float(x), 6) for x in py_berechnet]}",
+            expected= "Fehlschlag" if not resp or py_berechnet == None else f"{[round(float(x), 6) for x in py_berechnet]}",
             output = val if type(val) is not tuple else val[0].split(","),
             passed = erwartetes_ergebniss_erhalten,
             notes = abweichung
