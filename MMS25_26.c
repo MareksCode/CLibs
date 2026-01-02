@@ -602,7 +602,7 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     //Zeile n: n elemente
     double *values = malloc((pascalLineNumber)*sizeof(double));
     if (values== NULL) {
-        exit(-30);
+        exit(30);
     }
     //Erste Zahl der Reihe ist immer 1
     values[0] = 1;
@@ -614,6 +614,30 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     MMSignal *pascalSignal = createSignal_array(pascalLineNumber, values);
 
     return pascalSignal;
+}
+
+// A 4
+
+void getCartesianToPolar(int numberOfValues, double* realIn, double* imaginaryIn, double* amplitudesOut, double* angelsOut) {
+    if (realIn == NULL || imaginaryIn == NULL || amplitudesOut == NULL || angelsOut == NULL || numberOfValues <= 0) {
+        exit(31);
+    }
+
+    for (int i = 0; i < numberOfValues; i++) {
+        amplitudesOut[i] = sqrt(realIn[i] * realIn[i] + imaginaryIn[i] * imaginaryIn[i]); // Radius
+        angelsOut[i] = atan2(imaginaryIn[i], realIn[i]);              // Winkel
+    }
+}
+
+void getPolarToCartesian(int numberOfValues, double* amplitudesIn, double* angelsIn, double* realOut, double* imaginaryOut) {
+    if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
+        exit(32);
+    }
+
+    for (int i = 0; i < numberOfValues; i++) {
+        realOut[i] = amplitudesIn[i] * cos(angelsIn[i]); //Realteil
+        imaginaryOut[i] = amplitudesIn[i] * sin(angelsIn[i]); //Imaginärteil
+    }
 }
 
 void print_dbl_arr(double *arr, size_t length) {
