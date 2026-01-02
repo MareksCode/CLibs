@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+from tkinter import filedialog
 class compiler():
     def __init__(self, filename:str, filepath:str = None) -> None:
         """
@@ -48,5 +48,17 @@ class compiler():
             return False
 
 if __name__ == "__main__":
-    o = compiler("MMS25_26", filepath="i:\\codes\\c\\CLibs\\")
+    file_path = filedialog.askopenfilename(
+        title="C-Datei auswählen",
+        filetypes=[("C Dateien", "*.c"), ("Alle Dateien", "*.*")]
+    )
+
+    if not file_path:
+        raise RuntimeError("Keine Datei ausgewählt")
+
+    # Pfad zerlegen
+    directory, filename_with_ext = os.path.split(file_path)
+    filename, _ = os.path.splitext(filename_with_ext)
+
+    o = compiler(filename, filepath=directory)
     o.compile_library()

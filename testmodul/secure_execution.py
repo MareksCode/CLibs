@@ -4,14 +4,19 @@ import loader
 from strukturen import *
 import multiprocessing
 from collections.abc import Sequence
-
+from collections import deque
 
 # Logging-Konfiguration
+@DeprecationWarning
 class Executioner:    
+    def __init__(self):
+        self._keep_alive = []
+
     def run_test_process(self, funcname, q, args):
         process = multiprocessing.Process(target=self.thread_func, args=(funcname, q, args))
         process.start()
         return process
+
 
     def thread_func(self, funcname, q, args):
         def c_array_to_string(result, length):
@@ -29,12 +34,12 @@ class Executioner:
             return ",".join(f"{v:.6f}" for v in values)
 
         lib = loader.load_lib()
-
-        #formatieren der argumente, aber neu da sonst nicht pickable
+        
         try:
-            func = getattr(lib[0], funcname)
+            #formatieren der argumente, aber neu da sonst nicht pickable
             converted_args = []
-            array_length = 0
+            array_length = deque()
+
             for arg in args:
                 if isinstance(arg, Histogram):
                     new_obj = Histogram()
@@ -42,17 +47,33 @@ class Executioner:
                     converted_args.append(new_obj)
                 
                 elif isinstance(arg, MMSignal):
-                    new_obj = MMSignal()
-                    new_obj.insert_values(*arg.get_values())
+                    samples_c = (c_double * arg.numberOfSamples)(*arg.samples)
+
+                    new_obj = lib[1]()
+
+                    new_obj.numberOfSamples = arg.numberOfSamples
+                    new_obj.samples = samples_c
+                    new_obj.area = arg.area
+                    new_obj.mean = arg.mean
+                    new_obj.localExtrema = None
+
+                    self._keep_alive.append(samples_c)
+                    self._keep_alive.append(new_obj)
+
                     converted_args.append(new_obj)
                 
                 elif isinstance(arg, LocalExtrema):
                     new_obj = LocalExtrema()
                     new_obj.insert_values(*arg.get_values())
                     converted_args.append(new_obj)
+                
+                elif isinstance(arg, (str, bytes)):
+                    arr_type = c_char_p
+                    c_array = arr_type(arg.encode("utf-8"))
+                    converted_args.append(c_array)
 
                 elif isinstance(arg, Sequence) and not isinstance(arg, (str, bytes)):
-                    array_length = len(arg)
+                    array_length.append(len(arg))
                     arr_type = c_double * len(arg)
                     c_array = arr_type(*arg)
                     converted_args.append(c_array)
@@ -60,15 +81,16 @@ class Executioner:
                     converted_args.append(arg)
 
             #ausführen der funktion
+            func = getattr(lib[0], funcname)
             result = func(*converted_args)
 
+            # rückumwandlung
 
-            print(type(result))
-
-            #todo: rückumwandlunng in objekte
+            # c_double array in string
             if isinstance(result, (Array, POINTER(c_double))):
-                result = c_array_to_string(result, array_length)
+                result = c_array_to_string(result, array_length.popleft())
             
+            # LP_MMSignal in MMSignal
             if isinstance(result, POINTER(lib[1])):
                 print("mmsignal detected")
                 c_sig = result.contents
@@ -94,7 +116,7 @@ class Executioner:
 
                 result = py_sig
 
-
+            # LP_Histogram in Histogram - status unklar (funktionalität)
             if isinstance(result, POINTER(lib[2])):
                 c_sig = result.contents
                 py_sig = Histogram()    
@@ -115,7 +137,7 @@ class Executioner:
             
         except Exception as e:
             q.put(str(e))
-            print(e.__traceback__)
+            print(e)
 
 
 if __name__ == "__main__":
