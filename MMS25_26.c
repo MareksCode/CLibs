@@ -125,14 +125,13 @@ typedef struct NumNode {
 } NumNode;
 
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
-int readArrayFile(char *fileName, double *values) {
+double* readArrayFile(char *fileName, int* arrayLength) {
     FILE *filePointer = fopen(fileName, "r");
     if (filePointer == NULL) {
         printf("Could not open file\n");
-        return -1;
+        exit(2);
     }
 
-    //Linkin Park list
     Node *numberReadHead = malloc(sizeof(Node));
     numberReadHead->next = NULL;
     numberReadHead->prev = NULL;
@@ -141,41 +140,36 @@ int readArrayFile(char *fileName, double *values) {
     doubleArrayHead->next = NULL;
     doubleArrayHead->prev = NULL;
 
-    char ch;
-
-    while ((ch = fgetc(filePointer)) != EOF) { //get all chars till end of file
+    int ch; //fgetc braucht int
+    while ((ch = fgetc(filePointer)) != EOF) {
         int currentNumberLength = 0;
 
-        //create tmp node for the linked list that saves the current double string
         Node *newNode = malloc(sizeof(Node));
-        newNode->data = ch;
+        newNode->data = (char)ch; //int zurück zu char
         newNode->next = NULL;
 
-        //get the current string length & the next node to add the char to
         Node *previousNode = numberReadHead;
         while (previousNode->next != NULL) {
             previousNode = previousNode->next;
-            currentNumberLength+=1;
+            currentNumberLength++;
         }
 
         previousNode->next = newNode;
         newNode->prev = previousNode;
 
-        //string finished? Parse string to double & reset the numberReadHead linked list
         if (ch == '\n') {
-            //write chars in array
-            char *doubleAsString = malloc(sizeof(char) * currentNumberLength);
+            char *doubleAsString = malloc(currentNumberLength + 1); //+1 für '\0'
 
             int i = 0;
             Node *iterator = numberReadHead;
             while (iterator->next != NULL) {
                 iterator = iterator->next;
-                doubleAsString[i] = iterator->data;
-                i+=1;
+                doubleAsString[i++] = iterator->data;
             }
+            doubleAsString[i - 1] = '\0'; //wegen stringdarstellung in c
 
-            //parse the string to a double and add it to the final linked list
             double parsedResult = strtod(doubleAsString, NULL);
+
             NumNode *lastDoubleArrayNode = doubleArrayHead;
             while (lastDoubleArrayNode->next != NULL) {
                 lastDoubleArrayNode = lastDoubleArrayNode->next;
@@ -189,14 +183,11 @@ int readArrayFile(char *fileName, double *values) {
 
             free(doubleAsString);
 
-            //reduce the linkedlist to its header again
-            Node *nextNode = newNode;
-            Node *deletingNode;
-            while (nextNode->prev != NULL) {
-                deletingNode = nextNode;
-                nextNode = nextNode->prev;
-
-                free(deletingNode);
+            Node *n = numberReadHead->next;
+            while (n != NULL) {
+                Node *tmp = n;
+                n = n->next;
+                free(tmp);
             }
             numberReadHead->next = NULL;
         }
@@ -204,38 +195,34 @@ int readArrayFile(char *fileName, double *values) {
 
     free(numberReadHead);
 
-    //Create an array using the doubleArray linked list
-    int arrayLength = 0;
+    //Länge bestimmen
+    *arrayLength = 0;
     NumNode *iterator = doubleArrayHead;
     while (iterator->next != NULL) {
-        arrayLength+=1;
+        (*arrayLength)++;
         iterator = iterator->next;
     }
 
-    values = realloc(values, sizeof(double) * arrayLength);
-
+    double *values = malloc(sizeof(double) * (*arrayLength));
     if (values == NULL) {
-        free(values);
         fclose(filePointer);
-        printf("realloc failed\n");
-        return -2;
+        free(doubleArrayHead);
+        exit(2);
     }
 
-    //write in the array & delete linked list
-    while (iterator->prev != NULL) {
-        arrayLength-=1;
-        values[arrayLength] = iterator->data;
+    int i = *arrayLength;
+    while (iterator != doubleArrayHead) {
+        i--;
+        values[i] = iterator->data;
 
-        NumNode *thisNode = iterator;
+        NumNode *tmp = iterator;
         iterator = iterator->prev;
-
-        free(thisNode);
+        free(tmp);
     }
 
     free(doubleArrayHead);
-
     fclose(filePointer);
-    return arrayLength;
+    return values;
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
@@ -252,10 +239,10 @@ MMSignal *createSignal_array(int numberOfValues, double *values) {
 }
 
 MMSignal *createSignal_file(char *fileName) {
-    double *signalArray = malloc(sizeof(double));
-    int numberOfSamples = readArrayFile(fileName, signalArray);
+    int arraySize = 0;
+    double *signalArray = readArrayFile(fileName, &arraySize);
 
-    return createSignal_array(numberOfSamples, signalArray);
+    return createSignal_array(arraySize, signalArray);
 }
 
 void deleteMMSignal(MMSignal *In) {
@@ -629,13 +616,28 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     return pascalSignal;
 }
 
+void print_dbl_arr(double *arr, size_t length) {
+    printf("[");
+
+    for (size_t i = 0; i < length; i++) {
+        printf("%f", arr[i]);
+        if (i + 1 < length) {
+            printf(", ");
+        }
+    }
+
+    printf("]\n");
+}
 int main() {
-    //test for median //TODO: REMOVE
-    double arr[] = {1,3,3,5,7,8,10};
+    double arr[] = {1.2345,3,3,5,7.8910,8,10};
     int i = 7;
 
-    printf("%f", computeMedian(createSignal_array(i, arr)));
+    writeArrayFile("./test.txt", arr, i);
+    int newArraySize = 0;
+    double *newArray = readArrayFile("./test.txt", &newArraySize);
 
-    free(arr);
+    print_dbl_arr(newArray, newArraySize);
+
+    free(newArray);
     return 0;
 }
