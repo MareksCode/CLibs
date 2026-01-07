@@ -7,6 +7,7 @@ from ctypes import *
 from collections import deque
 from collections.abc import Sequence
 import matplotlib.pyplot as plt
+import os
 
     
 class Executioner():
@@ -128,7 +129,8 @@ class Executioner():
             result_py = self.restore_result(lib, result_c, meta)
             args_py = self.restore_args(meta)
 
-            q.put((result_py, args_py))
+            q.put([result_py, args_py])  
+   
 
         except Exception as e:
             q.put(e)
