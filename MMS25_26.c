@@ -652,6 +652,20 @@ void print_dbl_arr(double *arr, size_t length) {
 
     printf("]\n");
 }
+
+void dft(int numberOfValues, double* realIn, double* imaginaryIn, double* realOut, double* imaginaryOut,int Direction){
+    for(int k = 0; k < numberOfValues; k++){
+        realOut[k] = 0.0;
+        imaginaryOut[k] = 0.0;
+        for(int n = 0; n < numberOfValues; n++){
+            double angle = Direction * 2 * PI * k * n / numberOfValues;
+            realOut[k] += realIn[n] * cos(angle) + imaginaryIn[n] * sin(angle);
+            imaginaryOut[k] += -realIn[n] * sin(angle) + imaginaryIn[n] * cos(angle);
+        }
+    }
+}
+
+
 int main() {
     double arr[] = {1.2345,3,3,5,7.8910,8,10};
     int i = 7;
