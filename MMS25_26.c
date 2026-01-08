@@ -446,7 +446,7 @@ double computeStandardDeviation(MMSignal *In)
     return sqrt(sum / In->numberOfSamples);
 }
 
-double bubbleSort(double *array, int arraySize) {
+void bubbleSort(double *array, int arraySize) {
     for (int i = 0; i < arraySize - 1; i++) {
         for (int j = 0; j < arraySize - i - 1; j++) {
             if (array[j] > array[j + 1]) {
@@ -602,7 +602,7 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     //Zeile n: n elemente
     double *values = malloc((pascalLineNumber)*sizeof(double));
     if (values== NULL) {
-        exit(-30);
+        exit(30);
     }
     //Erste Zahl der Reihe ist immer 1
     values[0] = 1;
@@ -614,6 +614,30 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     MMSignal *pascalSignal = createSignal_array(pascalLineNumber, values);
 
     return pascalSignal;
+}
+
+// A 4
+
+void getCartesianToPolar(int numberOfValues, double* realIn, double* imaginaryIn, double* amplitudesOut, double* angelsOut) {
+    if (realIn == NULL || imaginaryIn == NULL || amplitudesOut == NULL || angelsOut == NULL || numberOfValues <= 0) {
+        exit(31);
+    }
+
+    for (int i = 0; i < numberOfValues; i++) {
+        amplitudesOut[i] = sqrt(realIn[i] * realIn[i] + imaginaryIn[i] * imaginaryIn[i]); // Radius
+        angelsOut[i] = atan2(imaginaryIn[i], realIn[i]);              // Winkel
+    }
+}
+
+void getPolarToCartesian(int numberOfValues, double* amplitudesIn, double* angelsIn, double* realOut, double* imaginaryOut) {
+    if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
+        exit(32);
+    }
+
+    for (int i = 0; i < numberOfValues; i++) {
+        realOut[i] = amplitudesIn[i] * cos(angelsIn[i]); //Realteil
+        imaginaryOut[i] = amplitudesIn[i] * sin(angelsIn[i]); //Imaginärteil
+    }
 }
 
 void print_dbl_arr(double *arr, size_t length) {
@@ -628,6 +652,20 @@ void print_dbl_arr(double *arr, size_t length) {
 
     printf("]\n");
 }
+
+void dft(int numberOfValues, double* realIn, double* imaginaryIn, double* realOut, double* imaginaryOut,int Direction){
+    for(int k = 0; k < numberOfValues; k++){
+        realOut[k] = 0.0;
+        imaginaryOut[k] = 0.0;
+        for(int n = 0; n < numberOfValues; n++){
+            double angle = Direction * 2 * PI * k * n / numberOfValues;
+            realOut[k] += realIn[n] * cos(angle) + imaginaryIn[n] * sin(angle);
+            imaginaryOut[k] += -realIn[n] * sin(angle) + imaginaryIn[n] * cos(angle);
+        }
+    }
+}
+
+
 int main() {
     double arr[] = {1.2345,3,3,5,7.8910,8,10};
     int i = 7;
