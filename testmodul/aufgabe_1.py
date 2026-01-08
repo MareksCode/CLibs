@@ -26,6 +26,11 @@ def run_test(test_function, value):
         logging.info("Ergebniss: exit-code: %s", process.exitcode)
         return "exit code %s" % process.exitcode
 
+def todo(func):
+    def wrapper(*args, **kwargs):
+        raise NotImplementedError(f"funktion {func.__name__} ist unvollständig und funktioniert zur zeit nicht.")
+    return wrapper
+
 def test_interpolateLine():
     test_function = "interpolateLine"
     test_values = [[(1.0, 2.0, 3.0, 4.0, 5.0), False],
@@ -136,7 +141,8 @@ def test_scaleValuesInArray():
         #x = "Fehlschlag" if not resp else f"Ergebniss: {scaleValueInArray(value[0][1], value[0][2], value[0][3])}"
         #logging.info(f"Erwartet: {x}")
 
-# signal sine erzeugen, speichern, lesen über mms sig
+# anassen an neuen header
+@todo
 def test_writeCreateArrayFile(): 
     test_function = "createSineSignal"
     test_value = [(200, 100, 2.0)]
