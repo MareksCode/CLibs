@@ -446,7 +446,7 @@ double computeStandardDeviation(MMSignal *In)
     return sqrt(sum / In->numberOfSamples);
 }
 
-double bubbleSort(double *array, int arraySize) {
+void bubbleSort(double *array, int arraySize) {
     for (int i = 0; i < arraySize - 1; i++) {
         for (int j = 0; j < arraySize - i - 1; j++) {
             if (array[j] > array[j + 1]) {
