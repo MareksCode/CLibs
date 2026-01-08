@@ -74,9 +74,26 @@ class Executioner():
             )
             return py_sig
 
+        if isinstance(result, POINTER(lib[2])):
+            c_sig = result.contents
+
+            samples = [c_sig.bins[i] for i in range(c_sig.numberOfBins)]
+
+
+            py_sig = Histogram()
+            py_sig.insert_values(
+                numberOfBins=c_sig.numberOfBins,
+                bins=samples,
+                minimum=c_sig.minimum,
+                maximum=c_sig.maximum,
+                binWidth=c_sig.binWidth,
+            )
+            return py_sig
+
+
         # double*
         if isinstance(result, POINTER(c_double)):
-    # Länge aus meta holen (erstes Array-Argument)
+        # Länge aus meta holen (erstes Array-Argument)
             for entry in meta:
                 if entry[0] == "array":
                     _, _, length = entry
@@ -85,6 +102,8 @@ class Executioner():
 
             raise ValueError("Keine Länge für double* gefunden")
         
+
+
         return result
 
     def restore_args(self, meta):

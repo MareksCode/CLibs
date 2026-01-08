@@ -89,7 +89,7 @@ def test_scaleValuesInArray():
         erwartetes_ergebniss_erhalten = True
         abweichung = ""
         py_berechnet = None
-        
+
         try:
             py_berechnet = scaleValueInArray(*value[0])
         except:
@@ -146,17 +146,23 @@ def test_writeCreateArrayFile():
     run_test("writeSignal", [(signal, "sine_output.txt")])
 
     values = [0.0] * test_value[0][0]
-    out, val = run_test("readArrayFile", [("sine_output.txt", values)])
-
+    out = run_test("readArrayFile", [("sine_output.txt", values)])
+    
+    crash = False
+    if "exit code" in str(out) or "Error" in str(out):
+        crash = True
+    val = out[1]
     periods = test_value[0][0] / test_value[0][1]
 
+    
     plt.title("Sine Signal") 
     plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), signal.samples)
     plt.savefig(os.path.join(report.image_dir, "sine_wave.png"))
-
-    plt.title("Gelesenes Signal")
-    plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), val[1])
-    plt.savefig(os.path.join(report.image_dir, "sine_wave_read.png"))
+    
+    if not crash:
+        plt.title("Gelesenes Signal")
+        plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), val[1])
+        plt.savefig(os.path.join(report.image_dir, "sine_wave_read.png"))
     
     report.add_test(
             name="createSineSignal",
@@ -166,9 +172,9 @@ def test_writeCreateArrayFile():
                 "Amplitude": test_value[0][2]
             },
             expected = "signal erstellt",
-            output = "vergeliche bild",
+            output = "vergeliche bild" ,
             plots=["sine_wave.png"],
-            passed="maby",
+            passed="maby" ,
         )
     
     report.add_test(
@@ -178,9 +184,9 @@ def test_writeCreateArrayFile():
             },
 
             expected = "signal geschrieben und gelesen",
-            output = "vergeliche bild mit erstem. sollte identisch sein.",
-            plots=["sine_wave_read.png"],
-            passed="maby",
+            output = "vergeliche bild mit erstem. sollte identisch sein." if not crash else str(out),
+            plots=["sine_wave_read.png"] if not crash else None,
+            passed="maby" if not crash else False,
         )
     #plt.show()
 
@@ -189,7 +195,7 @@ def test_writeCreateArrayFile():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
-    #test_interpolateLine()
+    test_interpolateLine()
     test_scaleValuesInArray()
-    #test_writeCreateArrayFile()
+    test_writeCreateArrayFile()
     report.write()

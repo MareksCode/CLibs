@@ -87,7 +87,7 @@ class TestReport:
 
         f.write("### Eingabe\n")
         for key, value in test["input"].items():
-            f.write(f"- **{key}**: {value}\n")
+            f.write(f"- **{key}**: {self._truncate(value)}\n")
 
         expected_text = self._truncate(test["expected"])
         output_text = self._truncate(test["output"])

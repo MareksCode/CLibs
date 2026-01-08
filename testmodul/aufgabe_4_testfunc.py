@@ -55,9 +55,9 @@ def plot_signal_and_spectrum(x, signal, realOut, imaginaryOut, N):
     plt.show()
 
 if __name__ == "__main__":
-    N = 300
+    N = 200
     x, signal = create_signal(N)
-    
+
     realIn = signal
     imaginaryIn = [0.0] * N
     realOut = [0.0] * N

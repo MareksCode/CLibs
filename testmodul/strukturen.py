@@ -10,12 +10,12 @@ class Histogramm_c(Structure):
     ]
     
 class Histogram():
-    def __init__(self):
-        self.numberOfBins = 0
-        self.bins = [int]
-        self.minimum = 0.0
-        self.maximum = 0.0
-        self.binWidth = 0.0
+    def __init__(self, numberOfBins=0, bins=[int], minimum=0.0, maximum=0.0, binWidth=0.0):
+        self.numberOfBins = numberOfBins
+        self.bins = bins
+        self.minimum = minimum
+        self.maximum = maximum
+        self.binWidth = binWidth
     def insert_values(self, 
                       numberOfBins: int, 
                       bins: list[int], 
@@ -66,7 +66,6 @@ class MMSignal_c(Structure):
         ("mean", c_double),
         ("localExtrema", POINTER(LocalExtrema_c))
     ]
-
 
 class MMSignal():
     def __init__(self):
