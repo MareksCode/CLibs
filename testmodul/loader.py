@@ -65,40 +65,37 @@ def load_lib():
 
     
     #aufgabe 2
-    # lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
-    # lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
+    lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
+    lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
 
-    # lib.createHistogram_empty.argtypes = []
-    # lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_empty.argtypes = []
+    lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
 
-    # lib.createHistogram_bins.argtypes = [ctypes.c_int]
-    # lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_bins.argtypes = [ctypes.c_int]
+    lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
 
-    # lib.createHistogram_array.argtypes = [
-    #     ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int
-    # ]
-    # lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_array.argtypes = [
+        ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int
+    ]
+    lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
 
-    # #lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
-    # #lib.computeEntropy.restype = ctypes.c_double
+    lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeArea.restype = ctypes.c_double
 
-    # lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeArea.restype = ctypes.c_double
+    lib.computeMean.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeMean.restype = ctypes.c_double
 
-    # lib.computeMean.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeMean.restype = ctypes.c_double
+    lib.computeStandardDeviation.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeStandardDeviation.restype = ctypes.c_double
 
-    # lib.computeStandardDeviation.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeStandardDeviation.restype = ctypes.c_double
+    lib.computeMedian.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeMedian.restype = ctypes.c_double
 
-    # lib.computeMedian.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeMedian.restype = ctypes.c_double
+    lib.computeExtrema.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeExtrema.restype = ctypes.POINTER(LocalExtrema)
 
-    # lib.computeExtrema.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeExtrema.restype = ctypes.POINTER(LocalExtrema)
-
-    # #lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
-    # #lib.computeEntropy.restype = ctypes.c_double
+    lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
+    lib.computeEntropy.restype = ctypes.c_double
 
     #aufgabe 4
     lib.dft.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.c_int]

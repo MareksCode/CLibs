@@ -24,7 +24,7 @@ class TestReport:
         if len(text) <= max_length:
             return text
 
-        return text[:max_length] + "...\n(gekürzt)"
+        return text[:max_length] + "...\n(gekürzt)]"
 
 
     # -------------------------------------------------

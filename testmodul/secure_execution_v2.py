@@ -39,6 +39,21 @@ class Executioner():
                 c_args.append(byref(c_sig))
                 meta.append(("MMSignal", c_sig))
 
+            elif isinstance(arg, Histogram):
+                bins_c = (c_int * arg.numberOfBins)(*arg.bins)
+
+                c_sig = lib[2]()   # Histogram_c
+                c_sig.numberOfBins = arg.numberOfBins
+                c_sig.bins = bins_c
+                c_sig.minimum = arg.minimum
+                c_sig.maximum = arg.maximum
+                c_sig.binWidth = arg.binWidth
+
+                self._keep_alive += [bins_c, c_sig]
+                c_args.append(byref(c_sig))
+                meta.append(("Histogram", c_sig))
+                pass
+
             # ---------- String ----------
             elif isinstance(arg, str):
                 c_str = c_char_p(arg.encode("utf-8"))

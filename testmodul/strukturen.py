@@ -86,6 +86,9 @@ class MMSignal():
         self.area = area
         self.mean = mean
         self.localExtrema = localExtrema
+    def set_samples(self, samples):
+        self.samples = samples
+        self.numberOfSamples = len(samples)
 
     def get_values(self):
         return self.numberOfSamples, self.samples, self.area, self.mean, self.localExtrema

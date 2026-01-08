@@ -25,6 +25,7 @@ def run_test(test_function, value):
 
     else :
         logging.info("Ergebniss: exit-code: %s", process.exitcode)
+        return "exit-code %s" % process.exitcode
 
 
 def test_createHistogram_array():
@@ -42,7 +43,7 @@ def test_createHistogram_array():
     plt.figure(figsize=(12, 6))
     plt.subplot(1, 2, 1)
     plt.title("Histogramm c")
-    plt.bar([i for i in range(len(signal.bins))], signal.bins)
+    plt.bar([i for i in range(len(signal[0].bins))], signal[0].bins)
     plt.grid=True
 
     plt.subplot(1, 2, 2)
@@ -52,7 +53,7 @@ def test_createHistogram_array():
 
     same = True
     for v in range(valNew.numberOfBins): 
-        if valNew.bins[v] != signal.bins[v]:
+        if valNew.bins[v] != signal[0].bins[v]:
             same = False
             break
 
@@ -70,12 +71,91 @@ def test_createHistogram_array():
             ]
         )
 
-def test_computeStandardDeviation():pass
+def test_computeEntropy():
+    test_function = "computeEntropy"
+    binNum = 10
+
+
+    sig_1 = createHistogram([1,2,3,4,5,6,7,8,9,10], binNum)
+    sig_2 = createHistogram([-1,1], binNum)
+    sig_3 = createHistogram([], binNum)
+
+
+    test_value = [[(sig_1, 0), True],
+                    [(sig_2, 0), True],
+                    [(sig_3, 0), False]] # hier ein paar wundervolle MMSignale
+
+    for x in test_value:
+        print(x)
+        value_py =  computeEntropy(x[0][0]) if x[1] else "Fail"
+        value = run_test(test_function, x)
+        erroes = False if not "Error" in str(value) else True
+        passed = False
+        if x[1] and not erroes:
+            passed = float(value[0]) == value_py
+        else:
+            if "exit" in str(value) or "Error" in str(value) or value is Exception:
+                passed = True
+            else:
+                passed = False
+        report.add_test(
+                name=test_function,
+                input_data={
+                    "Bins": x[0][0].bins,
+                    "Bin Width": x[0][0].binWidth,
+                    "Number of Bins": binNum
+                },
+                expected = f"{value_py}",
+                passed = passed,
+                output = f"{value[0] if passed and x[1] and not erroes else value}",
+            )
+
 def test_computeMedian():pass
 def test_computeExtream():pass
-def test_computeEntropy():pass
+
+
+def test_computeStandardDeviation():
+    test_function = "computeStandardDeviation"
+    sig_1 = MMSignal()
+    sig_1.set_samples([1,2,3,4,5,6,7,8,9,10])
+    sig_2 = MMSignal()
+    sig_2.set_samples([1,1])
+    sig_3 = MMSignal()
+    sig_3.set_samples([])
+
+    test_value = [[(sig_1, 0), True],
+                  [(sig_2, 0), True],
+                  [(sig_3, 0), False]] # hier ein paar wundervolle MMSignale
+
+    for x in test_value:
+        print(x)
+        value_py =  computeStandardDeviation(x[0][0]) if x[1] else "Fail"
+        value = run_test(test_function, x)
+        
+        if x[1]:
+            passed = float(value[0]) == value_py
+        else:
+            if "exit" in str(value) or "Error" in str(value):
+                passed = True
+            else:
+                passed = False
+        report.add_test(
+                name=test_function,
+                input_data={
+                    "Signal": x[0][0].samples
+                },
+                expected = f"Standardabweichung: {value_py}",
+                passed = passed,
+                output = f"Standardabweichung: {value[0] if passed and x[1] else value}",
+            )
+    
+    pass
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
-    test_createHistogram_array()
+    #test_createHistogram_array()
+    #test_computeStandardDeviation()
+    #test_computeMedian()
+    #test_computeExtream()
+    test_computeEntropy()
     report.write()
