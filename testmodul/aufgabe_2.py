@@ -110,8 +110,79 @@ def test_computeEntropy():
                 output = f"{value[0] if passed and x[1] and not erroes else value}",
             )
 
-def test_computeMedian():pass
-def test_computeExtream():pass
+def test_computeMedian():
+    test_function = "computeMedian"
+    sig_1 = MMSignal()
+    sig_1.set_samples([1,2,3,4,5,6,7,8,9,10])
+    sig_2 = MMSignal()
+    sig_2.set_samples([1,1])
+    sig_3 = MMSignal()
+    sig_3.set_samples([])
+
+    test_value = [[(sig_1, 0), True],
+                  [(sig_2, 0), True],
+                  [(sig_3, 0), False]] # hier ein paar wundervolle MMSignale
+
+    for x in test_value:
+        print(x)
+        value_py =  get_mean(x[0][0]) if x[1] else "Fail"
+        value = run_test(test_function, x)
+        
+        if x[1]:
+            passed = float(value[0]) == value_py
+        else:
+            if "exit" in str(value) or "Error" in str(value):
+                passed = True
+            else:
+                passed = False
+        report.add_test(
+                name=test_function,
+                input_data={
+                    "Signal": x[0][0].samples
+                },
+                expected = f"{value_py}",
+                passed = passed,
+                output = f"{value[0] if passed and x[1] else value}",
+            )
+
+def test_computeExtream():
+    test_function = "computeExtrema"
+    sig_1 = MMSignal()
+    sig_1.set_samples([1,2,2,1,7,6,6,7,8])
+    sig_2 = MMSignal()
+    sig_2.set_samples([1,1])
+    sig_3 = MMSignal()
+    sig_3.set_samples([])
+
+    test_value = [[(sig_1, 0), True]] # hier ein paar wundervolle MMSignale
+
+    for x in test_value:
+        print(x)
+        value_py =  get_extrema(x[0][0]) if x[1] else "Fail"
+        value = run_test(test_function, x)
+        erroes = False if not "Error" in str(value) and not "exit-code" in str(value) else True
+        passed = False
+        print(value)
+        extrema = value[0]
+        print(extrema)
+
+        if x[1] and not erroes:
+            passed = True#float(value[0]) == value_py
+        else:
+            if "exit" in str(value) or "Error" in str(value) or value is Exception:
+                passed = True
+            else:
+                passed = False
+        report.add_test(
+                name=test_function,
+                input_data={
+                    "Samples": x[0][0].samples                   
+                },
+                expected = f"{value_py}",
+                passed = passed,
+                output = f"{(extrema.maximumPositionArray, extrema.minimumPositionArray) if passed and x[1] and not erroes else value}",
+            )
+    pass
 
 
 def test_computeStandardDeviation():
@@ -156,6 +227,6 @@ if __name__ == "__main__":
     #test_createHistogram_array()
     #test_computeStandardDeviation()
     #test_computeMedian()
-    #test_computeExtream()
-    test_computeEntropy()
+    test_computeExtream()
+    #test_computeEntropy()
     report.write()

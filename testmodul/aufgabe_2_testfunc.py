@@ -76,3 +76,41 @@ def computeEntropy(his:Histogram) -> float:
             entropy -= p * math.log2(p)
 
     return entropy
+
+def get_extrema(sig: MMSignal) -> tuple[list[float], list[float]]:
+    maxima = []
+    minima = []
+    vl = sig.samples
+    i = 1
+
+    if sig.numberOfSamples < 3: return 0,0
+
+    while i < sig.numberOfSamples-1:
+        if vl [i-1] > vl[i]:
+            j = -1
+            while vl[i] == vl[i+1]: 
+                j = i if j == -1 else j
+                i += 1
+            if vl[i] < vl[i+1]:
+                minima.append(i if j == -1 else (j, i))
+
+        elif vl [i-1] < vl[i]:
+            j = -1
+            while vl[i] == vl[i+1]: 
+                j = i if j == -1 else j
+                i += 1
+            if vl[i] > vl[i+1]:
+                maxima.append(i if j == -1 else (j, i))
+                
+        i += 1
+
+    return minima, maxima
+
+
+if __name__ == "__main__":
+    sig = MMSignal()
+    sig.samples = [1, 2, 3, 4, 4, 4, 5, 5, 4, 3, 4, 5, 4]
+    sig.numberOfSamples = len(sig.samples)
+    min, max = get_extrema(sig)
+    print(min)
+    print(max)

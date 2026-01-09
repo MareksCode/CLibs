@@ -105,6 +105,15 @@ class Executioner():
                 binWidth=c_sig.binWidth,
             )
             return py_sig
+        
+        if isinstance(result, POINTER(lib[3])):
+            c_sig = result.contents
+
+            maxima = [c_sig.maximumPositionArray[i] for i in range(c_sig.numberOfMaximumPositions)]
+            minima = [c_sig.minimumPositionArray[i] for i in range(c_sig.numberOfMinimumPositions)]
+
+            py_sig = LocalExtrema(minima, maxima)
+            return py_sig
 
 
         # double*
