@@ -224,9 +224,9 @@ def test_computeStandardDeviation():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
-    #test_createHistogram_array()
-    #test_computeStandardDeviation()
-    #test_computeMedian()
+    test_createHistogram_array()
+    test_computeStandardDeviation()
+    test_computeMedian()
     test_computeExtream()
-    #test_computeEntropy()
+    test_computeEntropy()
     report.write()
