@@ -47,8 +47,8 @@ def load_lib():
     lib.writeArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
     lib.writeArrayFile.restype = ctypes.c_int
 
-    lib.readArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_double)]
-    lib.readArrayFile.restype = ctypes.c_int
+    lib.readArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)]
+    lib.readArrayFile.restype = ctypes.POINTER(ctypes.c_double)
 
     lib.createSignal_array.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double)]
     lib.createSignal_array.restype = ctypes.POINTER(MMSignal)

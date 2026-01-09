@@ -67,6 +67,14 @@ class Executioner():
                 c_args.append(arr)
                 meta.append(("array", arr, len(arg)))
 
+            elif isinstance(arg, c_long):
+                val = arg.value
+                val_c = c_int(val)
+
+                self._keep_alive.append(val_c)
+                c_args.append(byref(val_c))
+                meta.append(("int", val_c))
+
             # ---------- Primitive ----------
             else:
                 c_args.append(arg)
@@ -124,10 +132,12 @@ class Executioner():
                     _, _, length = entry
                     values = [result[i] for i in range(length)]
                     return ",".join(f"{v:.6f}" for v in values)
+                elif entry[0] == "int":
+                    length = entry[1].value
+                    values = [result[i] for i in range(length)]
+                    return ",".join(f"{v:.6f}" for v in values)
 
             raise ValueError("Keine Länge für double* gefunden")
-        
-
 
         return result
 
@@ -154,6 +164,10 @@ class Executioner():
             elif kind == "array":
                 arr, length = entry[1], entry[2]
                 restored.append([arr[i] for i in range(length)])
+            
+            elif kind=="int":
+                val_c = entry[1]
+                restored.append(val_c.value)
 
             else:
                 restored.append(None)

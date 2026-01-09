@@ -19,7 +19,7 @@ def run_test(test_function, value):
     process.join()
     if not q.empty():
         val = q.get()
-        logging.info("Ergebniss: %s", val)
+        logging.info("Ergebniss: %s", val[100])
         return val
 
     else :
@@ -142,22 +142,22 @@ def test_scaleValuesInArray():
         #logging.info(f"Erwartet: {x}")
 
 # anassen an neuen header
-@todo
 def test_writeCreateArrayFile(): 
     test_function = "createSineSignal"
-    test_value = [(200, 100, 2.0)]
+    test_value = [(700, 200, 2.0)]
 
     signal, _ = run_test(test_function, test_value)
 
     run_test("writeSignal", [(signal, "sine_output.txt")])
 
-    values = [0.0] * test_value[0][0]
-    out = run_test("readArrayFile", [("sine_output.txt", values)])
+    #values = [0.0] * test_value[0][0]
+    x = c_int(0)
+    out = run_test("readArrayFile", [("sine_output.txt", x)])
     
     crash = False
     if "exit code" in str(out) or "Error" in str(out):
         crash = True
-    val = out[1]
+    
     periods = test_value[0][0] / test_value[0][1]
 
     
@@ -167,7 +167,9 @@ def test_writeCreateArrayFile():
     
     if not crash:
         plt.title("Gelesenes Signal")
-        plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), val[1])
+        val = out[0].split(",")
+        val = [float(x) for x in val]
+        plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), val)
         plt.savefig(os.path.join(report.image_dir, "sine_wave_read.png"))
     
     report.add_test(
