@@ -14,33 +14,7 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
         exit(3);
     }
     double diff = x2 - x1;
-    return (x1 + alpha * diff);
-}
-
-//linearly interpolates 2d points represented by arrays by <alpha>
-double *interpolate2DPointsByAlpha(double *p1, double *p2, double alpha) {
-    double *resultingPoint = calloc(2, sizeof(double));
-    resultingPoint[0] = interpolateDigitsByAlpha(p1[0], p2[0], alpha);
-    resultingPoint[1] = interpolateDigitsByAlpha(p1[1], p2[1], alpha);
-
-    return resultingPoint;
-}
-
-//linearly interpolates 2d points represented by arrays using an x inbetween them
-double *interpolate2DPointsWithX(double *p1, double *p2, double x) {
-    double x1 = p1[0];
-    double x2 = p2[0];
-
-    double fullLength = fabs(x2 - x1);
-    double alpha = 0;
-
-    if (x1 <= x2) {
-        alpha = (x - x1) / fullLength;
-        return interpolate2DPointsByAlpha(p1, p2, alpha);
-    } else {
-        alpha = (x - x2) / fullLength;
-        return interpolate2DPointsByAlpha(p2, p1, alpha);
-    }
+    return x1 + alpha * diff;
 }
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
