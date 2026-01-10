@@ -73,7 +73,7 @@ double *scaleValuesInArray(int numberOfValues, double *values, double min, doubl
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
     double *sineArray = calloc(totalSamples, sizeof(double));
 
-    if (sineArray == NULL) {
+    if (sineArray == NULL || totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
         printf("creating the sine array failed\n");
         exit(7);
     }
@@ -88,6 +88,10 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
 //Takes a pointer to an array and creates a <filePath> containing all the values
 //Returns 1 if everything worked, 0 if there was an error
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
+    if (!filePath || !array || arrayLength <= 0) {
+        exit(2);
+    }
+
     FILE *filePointer;
 
     filePointer = fopen(filePath, "w");
@@ -109,8 +113,11 @@ int writeArrayFile(char *filePath, double *array, int arrayLength) {
 
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
 double *readArrayFile(char *fileName, int *arrayLength) {
+    if (!fileName || !arrayLength) {
+        exit(2);
+    }
     FILE *filePointer = fopen(fileName, "r");
-    if (filePointer == NULL) {
+    if (!filePointer) {
         printf("Could not open file\n");
         exit(2);
     }
@@ -209,6 +216,10 @@ double *readArrayFile(char *fileName, int *arrayLength) {
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
+    if (numberOfValues <= 0 || !values) {
+        exit(2);
+    }
+
     MMSignal *newSignal = malloc(sizeof(MMSignal));
 
     newSignal->numberOfSamples = numberOfValues;
@@ -222,6 +233,10 @@ MMSignal *createSignal_array(int numberOfValues, double *values) {
 }
 
 MMSignal *createSignal_file(char *fileName) {
+    if (!fileName) {
+        exit(2);
+    }
+
     int arraySize = 0;
     double *signalArray = readArrayFile(fileName, &arraySize);
 
@@ -230,7 +245,7 @@ MMSignal *createSignal_file(char *fileName) {
 
 void deleteMMSignal(MMSignal *In) {
     if (In == NULL) {
-        return;
+        exit(2);
     }
 
     free(In->localExtrema);
@@ -240,10 +255,17 @@ void deleteMMSignal(MMSignal *In) {
 }
 
 void writeSignal(MMSignal *In, char *fileName) {
+    if (!In || !fileName) {
+        exit(2);
+    }
+
     writeArrayFile(fileName, In->samples, In->numberOfSamples);
 }
 
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude) {
+    if (totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
+        exit(2);
+    }
     MMSignal *newSignal = createSignal_array(totalSamples, createSineArray(totalSamples, samplesPerPeriod, amplitude));
     return newSignal;
 }
@@ -483,6 +505,10 @@ static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInI
 }
 
 LocalExtrema *computeExtrema(MMSignal *signal) {
+    if (!signal) {
+        exit(2);
+    }
+
     LocalExtrema *extrema = malloc(sizeof(*extrema));
 
     extrema->numberOfMaximumPositions = 0;
@@ -535,9 +561,9 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
 
             if (plateauStartIndex > 0 &&
                 plateauEndIndex < signal->numberOfSamples - 1) {
-                int leftNeighborSample =
+                double leftNeighborSample =
                         signal->samples[plateauStartIndex - 1];
-                int rightNeighborSample =
+                double rightNeighborSample =
                         signal->samples[plateauEndIndex + 1];
 
                 if (leftNeighborSample < centerSample &&
@@ -666,8 +692,7 @@ void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn
     }
 }
 
-void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut,
-                         double *imaginaryOut) {
+void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut, double *imaginaryOut) {
     if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
         exit(32);
     }
