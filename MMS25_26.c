@@ -511,6 +511,10 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
 
     LocalExtrema *extrema = malloc(sizeof(*extrema));
 
+    if (!extrema) {
+        exit(2);
+    }
+
     extrema->numberOfMaximumPositions = 0;
     extrema->numberOfMinimumPositions = 0;
 
