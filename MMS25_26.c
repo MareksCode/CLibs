@@ -7,6 +7,24 @@
 #include <string.h>
 #include <float.h>
 
+//***** Constants: *****
+
+double PI = 3.14159265359;
+
+typedef struct Node {
+    char data;
+    struct Node *next;
+    struct Node *prev;
+} Node;
+
+typedef struct NumNode {
+    double data;
+    struct NumNode *next;
+    struct NumNode *prev;
+} NumNode;
+
+//***** Helper functions: *****
+
 //Returns a linearly interpolated number between <x1> and <x2> using <alpha>
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) {
@@ -17,8 +35,9 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     return x1 + alpha * diff;
 }
 
+//***** Header function implementations: *****
+
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
-//TODO: Nachfragen, ob die funktion richtig angewendet wird (mit main methoden beispielen)
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     if (xb > x2 || xb < x1) {
         exit(4);
@@ -37,8 +56,9 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
 
+//using the formula value * scalingfactor - min
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
-    if (numberOfValues <= 0) {
+    if (numberOfValues <= 0 || !values) {
         exit(6);
     }
 
@@ -49,8 +69,7 @@ double *scaleValuesInArray(int numberOfValues, double *values, double min, doubl
     return values;
 }
 
-double PI = 3.14159265359;
-
+//creates a sine array of the length <totalSamples>.
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
     double *sineArray = calloc(totalSamples, sizeof(double));
 
@@ -66,7 +85,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     return sineArray;
 }
 
-//Takes a pointer to an array and creates a <filePath.txt> containing all the values
+//Takes a pointer to an array and creates a <filePath> containing all the values
 //Returns 1 if everything worked, 0 if there was an error
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
     FILE *filePointer;
@@ -87,18 +106,6 @@ int writeArrayFile(char *filePath, double *array, int arrayLength) {
     printf("File created\n");
     return 1;
 }
-
-typedef struct Node {
-    char data;
-    struct Node *next;
-    struct Node *prev;
-} Node;
-
-typedef struct NumNode {
-    double data;
-    struct NumNode *next;
-    struct NumNode *prev;
-} NumNode;
 
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
 double *readArrayFile(char *fileName, int *arrayLength) {
@@ -615,18 +622,18 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
 }
 
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
-    if (pascalLineNumber < 1) {
+    if (pascalLineNumber < 0) {
         exit(29);
     }
 
-    double *values = malloc(pascalLineNumber * sizeof(double));
+    double *values = malloc((pascalLineNumber+1) * sizeof(double));
     if (values == NULL) {
         exit(30);
     }
 
     //pascalzeile berechnen
     values[0] = 1;
-    for (int i = 1; i < pascalLineNumber; i++) {
+    for (int i = 1; i < pascalLineNumber+1; i++) {
         values[i] = values[i - 1]
                   * (double)(pascalLineNumber - i)
                   / (double)i;
@@ -634,15 +641,15 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
 
     //normierung (Summe = 1 → Gauss-Approximation)
     double sum = 0;
-    for (int i = 0; i < pascalLineNumber; i++) {
+    for (int i = 0; i < pascalLineNumber+1; i++) {
         sum += values[i];
     }
 
-    for (int i = 0; i < pascalLineNumber; i++) {
+    for (int i = 0; i < pascalLineNumber+1; i++) {
         values[i] /= sum;
     }
 
-    MMSignal *gaussSignal = createSignal_array(pascalLineNumber, values);
+    MMSignal *gaussSignal = createSignal_array(pascalLineNumber+1, values);
     return gaussSignal;
 }
 
