@@ -697,19 +697,6 @@ void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angel
     }
 }
 
-void print_dbl_arr(double *arr, size_t length) {
-    printf("[");
-
-    for (size_t i = 0; i < length; i++) {
-        printf("%f", arr[i]);
-        if (i + 1 < length) {
-            printf(", ");
-        }
-    }
-
-    printf("]\n");
-}
-
 void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut, int Direction) {
     for (int k = 0; k < numberOfValues; k++) {
         realOut[k] = 0.0;
@@ -720,19 +707,4 @@ void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOu
             imaginaryOut[k] += -realIn[n] * sin(angle) + imaginaryIn[n] * cos(angle);
         }
     }
-}
-
-
-int main() {
-    double arr[] = {1.2345, 3, 3, 5, 7.8910, 8, 10};
-    int i = 7;
-
-    writeArrayFile("./test.txt", arr, i);
-    int newArraySize = 0;
-    double *newArray = readArrayFile("./test.txt", &newArraySize);
-
-    print_dbl_arr(newArray, newArraySize);
-
-    free(newArray);
-    return 0;
 }
