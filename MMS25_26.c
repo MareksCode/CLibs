@@ -35,6 +35,32 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     return x1 + alpha * diff;
 }
 
+void bubbleSort(double *array, int arraySize) {
+    for (int i = 0; i < arraySize - 1; i++) {
+        for (int j = 0; j < arraySize - i - 1; j++) {
+            if (array[j] > array[j + 1]) {
+                double temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+        }
+    }
+}
+
+static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInInts, int index) {
+    if (*numberOfEntries >= *capacityInInts) {
+        *capacityInInts += BLOCK_SIZE / sizeof(int);
+
+        *indexArray = realloc(*indexArray,
+                              (*capacityInInts) * sizeof(int));
+        if (!*indexArray) {
+            exit(42);
+        }
+    }
+
+    (*indexArray)[(*numberOfEntries)++] = index;
+}
+
 //***** Header function implementations: *****
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
@@ -374,7 +400,7 @@ Histogram *createHistogram_array(int numberOfValues, double *values, int numberO
     h->bins = getHistogram(numberOfValues, values, numberOfBins);
 
     if (min == max) {
-        h->binWidth = 0.0;
+        h->binWidth = 0;
     } else {
         h->binWidth = (max - min) / numberOfBins;
     }
@@ -444,18 +470,6 @@ double computeStandardDeviation(MMSignal *In) {
     return sqrt(sum / In->numberOfSamples);
 }
 
-void bubbleSort(double *array, int arraySize) {
-    for (int i = 0; i < arraySize - 1; i++) {
-        for (int j = 0; j < arraySize - i - 1; j++) {
-            if (array[j] > array[j + 1]) {
-                double temp = array[j];
-                array[j] = array[j + 1];
-                array[j + 1] = temp;
-            }
-        }
-    }
-}
-
 double computeMedian(MMSignal *In) {
     if (In == NULL) {
         exit(20);
@@ -488,20 +502,6 @@ double computeMedian(MMSignal *In) {
 
     free(tmp);
     return median;
-}
-
-static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInInts, int index) {
-    if (*numberOfEntries >= *capacityInInts) {
-        *capacityInInts += BLOCK_SIZE / sizeof(int);
-
-        *indexArray = realloc(*indexArray,
-                              (*capacityInInts) * sizeof(int));
-        if (!*indexArray) {
-            exit(42);
-        }
-    }
-
-    (*indexArray)[(*numberOfEntries)++] = index;
 }
 
 LocalExtrema *computeExtrema(MMSignal *signal) {
