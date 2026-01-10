@@ -74,7 +74,7 @@ def test_approx_bell():
     test_function = "approximateGaussianBellCurve"
     
 
-    test_value = [[(10, 0), True]] # hier ein paar wundervolle MMSignale
+    test_value = [[(60, 0), True]] # hier ein paar wundervolle MMSignale
 
     for x in test_value:
         value_py =  aproximate_gaussian(x[0][0]) if x[1] else "Fail"
@@ -84,7 +84,7 @@ def test_approx_bell():
 
         signal = value[0]
         print(signal.samples)
-        max_abw = 1.0e-2
+        max_abw = 1.0e-10
 
         if x[1] and not erroes:
             
@@ -115,6 +115,6 @@ def test_approx_bell():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
-    #test_convolute_signal()
+    test_convolute_signal()
     test_approx_bell()
     report.write()

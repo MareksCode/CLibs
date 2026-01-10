@@ -34,7 +34,7 @@ def todo(func):
 def test_interpolateLine():
     test_function = "interpolateLine"
     test_values = [[(1.0, 2.0, 3.0, 4.0, 5.0), False],
-                   [(2.0, 2.0, 1.0, 4.0, 2.5), False],
+                   [(2.0, 2.0, 1.0, 4.0, 3.0), False],
                    [(1.0, 2.0, 3.0, 4.0, 2.5), True],
                    [(1.0, 2.0, 3.0, 4.0, -0.1), False],
                    [(1.0, 2.0, 1.0, 2.0, 1.0), False],
@@ -65,7 +65,7 @@ def test_interpolateLine():
             input_data={
                 "x1, y1": (f"({value[0][0]} | {value[0][1]})"),
                 "x2, y2": (f"({value[0][2]} | {value[0][3]})"),
-                "xb": str(value[0][3])
+                "xb": str(value[0][4])
             },
             expected= "Fehlschlag" if not resp else f"{interpolateLine(*value[0])}",
             output = val,

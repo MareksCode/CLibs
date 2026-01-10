@@ -708,6 +708,12 @@ void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angel
 }
 
 void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut, int Direction) {
+    if(realIn == NULL || imaginaryIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
+        exit(33);
+    }
+    if (Direction != 1 && Direction != -1) {
+        exit(34);
+    }
     for (int k = 0; k < numberOfValues; k++) {
         realOut[k] = 0.0;
         imaginaryOut[k] = 0.0;
