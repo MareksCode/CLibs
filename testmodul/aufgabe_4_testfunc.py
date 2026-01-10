@@ -67,6 +67,6 @@ if __name__ == "__main__":
 
     plot_signal_and_spectrum(x, signal, realOut, imaginaryOut, N)
 
-    #dft(N, realOut, imaginaryOut, realIn, imaginaryIn, Direction=-1)
-    #plot_signal_and_spectrum(x, signal, realIn, imaginaryIn, N)
+    dft(N, realOut, imaginaryOut, realIn, imaginaryIn, Direction=-1)
+    plot_signal_and_spectrum(x, realOut, realIn, imaginaryIn, N)
 

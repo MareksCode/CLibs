@@ -19,7 +19,7 @@ def run_test(test_function, value):
     process.join()
     if not q.empty():
         val = q.get()
-        logging.info("Ergebniss: %s", val[100])
+        logging.info("Ergebniss: %s", val)
         return val
 
     else :
