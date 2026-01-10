@@ -717,4 +717,10 @@ void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOu
             imaginaryOut[k] += -realIn[n] * sin(angle) + imaginaryIn[n] * cos(angle);
         }
     }
+    if(Direction == -1) {
+        for (int k = 0; k < numberOfValues; k++) {
+            realOut[k] /= numberOfValues;
+            imaginaryOut[k] /= numberOfValues;
+        }
+    }
 }

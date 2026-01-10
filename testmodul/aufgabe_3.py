@@ -74,7 +74,7 @@ def test_approx_bell():
     test_function = "approximateGaussianBellCurve"
     
 
-    test_value = [[(3, 0), True]] # hier ein paar wundervolle MMSignale
+    test_value = [[(10, 0), True]] # hier ein paar wundervolle MMSignale
 
     for x in test_value:
         value_py =  aproximate_gaussian(x[0][0]) if x[1] else "Fail"

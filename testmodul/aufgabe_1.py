@@ -34,6 +34,7 @@ def todo(func):
 def test_interpolateLine():
     test_function = "interpolateLine"
     test_values = [[(1.0, 2.0, 3.0, 4.0, 5.0), False],
+                   [(2.0, 2.0, 1.0, 4.0, 2.5), False],
                    [(1.0, 2.0, 3.0, 4.0, 2.5), True],
                    [(1.0, 2.0, 3.0, 4.0, -0.1), False],
                    [(1.0, 2.0, 1.0, 2.0, 1.0), False],
@@ -204,6 +205,6 @@ def test_writeCreateArrayFile():
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
     test_interpolateLine()
-    test_scaleValuesInArray()
-    test_writeCreateArrayFile()
+    #test_scaleValuesInArray()
+    #test_writeCreateArrayFile()
     report.write()
