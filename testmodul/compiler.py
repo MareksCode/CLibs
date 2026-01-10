@@ -20,7 +20,7 @@ class compiler():
         """
         Kompiliert die c-bibliothek
         
-        :param fpath: pfad, zu dem die co-datei geschrieben werden soll
+        :param fpath: pfad, zu dem die co-datei geschrieben werden soll8
         :type fpath: str
         """
         if fpath is None:

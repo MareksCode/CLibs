@@ -97,6 +97,9 @@ def load_lib():
     lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
     lib.computeEntropy.restype = ctypes.c_double
 
+    lib.approximateGaussianBellCurve.argtypes = [ctypes.c_int]
+    lib.approximateGaussianBellCurve.restype = ctypes.POINTER(MMSignal)
+
     #aufgabe 4
     lib.dft.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.c_int]
     lib.dft.restype = None
