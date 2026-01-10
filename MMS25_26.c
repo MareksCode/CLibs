@@ -635,7 +635,7 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     values[0] = 1;
     for (int i = 1; i < pascalLineNumber+1; i++) {
         values[i] = values[i - 1]
-                  * (double)(pascalLineNumber - i)
+                  * (double)(pascalLineNumber+1 - i)
                   / (double)i;
     }
 
