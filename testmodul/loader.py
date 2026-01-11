@@ -31,81 +31,81 @@ def load_lib():
             ("localExtrema", ctypes.POINTER(LocalExtrema)),
         ]
 
-    # # aufgabe 1
-    # lib.interpolateLine.argtypes = [ctypes.c_double]*5
-    # lib.interpolateLine.restype = ctypes.c_double
+    # aufgabe 1
+    lib.interpolateLine.argtypes = [ctypes.c_double]*5
+    lib.interpolateLine.restype = ctypes.c_double
 
-    # lib.scaleValuesInArray.argtypes = [
-    #     ctypes.c_int, ctypes.POINTER(ctypes.c_double),
-    #     ctypes.c_double, ctypes.c_double
-    # ]
-    # lib.scaleValuesInArray.restype = ctypes.POINTER(ctypes.c_double)
+    lib.scaleValuesInArray.argtypes = [
+        ctypes.c_int, ctypes.POINTER(ctypes.c_double),
+        ctypes.c_double, ctypes.c_double
+    ]
+    lib.scaleValuesInArray.restype = ctypes.POINTER(ctypes.c_double)
 
-    # lib.createSineArray.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
-    # lib.createSineArray.restype = ctypes.POINTER(ctypes.c_double)
+    lib.createSineArray.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
+    lib.createSineArray.restype = ctypes.POINTER(ctypes.c_double)
 
-    # lib.writeArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
-    # lib.writeArrayFile.restype = ctypes.c_int
+    lib.writeArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
+    lib.writeArrayFile.restype = ctypes.c_int
 
-    # lib.readArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)]
-    # lib.readArrayFile.restype = ctypes.POINTER(ctypes.c_double)
+    lib.readArrayFile.argtypes = [ctypes.c_char_p, ctypes.POINTER(ctypes.c_int)]
+    lib.readArrayFile.restype = ctypes.POINTER(ctypes.c_double)
 
-    # lib.createSignal_array.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double)]
-    # lib.createSignal_array.restype = ctypes.POINTER(MMSignal)
+    lib.createSignal_array.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double)]
+    lib.createSignal_array.restype = ctypes.POINTER(MMSignal)
 
-    # lib.createSignal_file.argtypes = [ctypes.c_char_p]
-    # lib.createSignal_file.restype = ctypes.POINTER(MMSignal)
+    lib.createSignal_file.argtypes = [ctypes.c_char_p]
+    lib.createSignal_file.restype = ctypes.POINTER(MMSignal)
 
-    # lib.writeSignal.argtypes = [ctypes.POINTER(MMSignal), ctypes.c_char_p]
-    # lib.writeSignal.restype = None
+    lib.writeSignal.argtypes = [ctypes.POINTER(MMSignal), ctypes.c_char_p]
+    lib.writeSignal.restype = None
 
-    # # noch nicht da wuuuu
-    # lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
-    # lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
+    # noch nicht da wuuuu
+    lib.createSineSignal.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_double]
+    lib.createSineSignal.restype = ctypes.POINTER(MMSignal)
 
     
-    # #aufgabe 2
-    # lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
-    # lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
+    #aufgabe 2
+    lib.getHistogram.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int]
+    lib.getHistogram.restype = ctypes.POINTER(ctypes.c_int)
 
-    # lib.createHistogram_empty.argtypes = []
-    # lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_empty.argtypes = []
+    lib.createHistogram_empty.restype = ctypes.POINTER(Histogram)
 
-    # lib.createHistogram_bins.argtypes = [ctypes.c_int]
-    # lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_bins.argtypes = [ctypes.c_int]
+    lib.createHistogram_bins.restype = ctypes.POINTER(Histogram)
 
-    # lib.createHistogram_array.argtypes = [
-    #     ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int
-    # ]
-    # lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
+    lib.createHistogram_array.argtypes = [
+        ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.c_int
+    ]
+    lib.createHistogram_array.restype = ctypes.POINTER(Histogram)
 
-    # lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeArea.restype = ctypes.c_double
+    lib.computeArea.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeArea.restype = ctypes.c_double
 
-    # lib.computeMean.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeMean.restype = ctypes.c_double
+    lib.computeMean.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeMean.restype = ctypes.c_double
 
-    # lib.computeStandardDeviation.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeStandardDeviation.restype = ctypes.c_double
+    lib.computeStandardDeviation.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeStandardDeviation.restype = ctypes.c_double
 
-    # lib.computeMedian.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeMedian.restype = ctypes.c_double
+    lib.computeMedian.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeMedian.restype = ctypes.c_double
 
-    # lib.computeExtrema.argtypes = [ctypes.POINTER(MMSignal)]
-    # lib.computeExtrema.restype = ctypes.POINTER(LocalExtrema)
+    lib.computeExtrema.argtypes = [ctypes.POINTER(MMSignal)]
+    lib.computeExtrema.restype = ctypes.POINTER(LocalExtrema)
 
-    # lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
-    # lib.computeEntropy.restype = ctypes.c_double
+    lib.computeEntropy.argtypes = [ctypes.POINTER(Histogram)]
+    lib.computeEntropy.restype = ctypes.c_double
 
     #aufgabe 3
 
-    # lib.convoluteSignals.argtypes = [ctypes.POINTER(MMSignal), ctypes.POINTER(MMSignal)]
-    # lib.convoluteSignals.restype = ctypes.POINTER(MMSignal)
+    lib.convoluteSignals.argtypes = [ctypes.POINTER(MMSignal), ctypes.POINTER(MMSignal)]
+    lib.convoluteSignals.restype = ctypes.POINTER(MMSignal)
 
     
 
-    # lib.approximateGaussianBellCurve.argtypes = [ctypes.c_int]
-    # lib.approximateGaussianBellCurve.restype = ctypes.POINTER(MMSignal)
+    lib.approximateGaussianBellCurve.argtypes = [ctypes.c_int]
+    lib.approximateGaussianBellCurve.restype = ctypes.POINTER(MMSignal)
 
     #aufgabe 4
     lib.dft.argtypes = [ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double), ctypes.c_int]
