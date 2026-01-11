@@ -286,7 +286,7 @@ double *readArrayFile(char *fileName, int *arrayLength) {
     free(numberReadHead);
     return values;
 
-// ----------- CLEANUP ---------------------------------------------------
+    // ----------- CLEANUP ---------------------------------------------------
     cleanup:
         if (numberReadHead) {
             Node *n = numberReadHead->next;
