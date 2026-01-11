@@ -31,7 +31,6 @@ double *scaleValuesInArray(int numberOfValues, double *values, double minimum, d
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude);
 int writeArrayFile(char *filePath, double *array, int arrayLength);
 double* readArrayFile(char *fileName, int* arrayLength);
-//int readArrayFile(char *fileName, double *values);
 MMSignal *createSignal_array(int numberOfValues, double *values);
 MMSignal *createSignal_file(char *fileName);
 void deleteMMSignal(MMSignal *In);
