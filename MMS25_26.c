@@ -11,21 +11,26 @@
 
 double PI = 3.14159265359;
 
+// Node for character-based parsing (used while reading numbers as strings)
 typedef struct Node {
-    char data;
-    struct Node *next;
-    struct Node *prev;
+    char data;              // single character
+    struct Node *next;      // pointer to next character
+    struct Node *prev;      // pointer to previous character
 } Node;
 
+// Node for storing parsed double values
 typedef struct NumNode {
-    double data;
-    struct NumNode *next;
-    struct NumNode *prev;
+    double data;            // numeric value
+    struct NumNode *next;   // pointer to next value
+    struct NumNode *prev;   // pointer to previous value
 } NumNode;
-
 //***** Helper functions: *****
 
-//Returns a linearly interpolated number between <x1> and <x2> using <alpha>
+
+/**
+ * Linearly interpolates between x1 and x2 using alpha.
+ * alpha must be in range [0, 1].
+ */
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) {
         printf("Wrong usage! Alpha must be between 0 and 1.\n");
@@ -35,6 +40,10 @@ double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     return x1 + alpha * diff;
 }
 
+/**
+ * bubble sort implementation for double arrays.
+ * Sorts the array in ascending order.
+ */
 void bubbleSort(double *array, int arraySize) {
     for (int i = 0; i < arraySize - 1; i++) {
         for (int j = 0; j < arraySize - i - 1; j++) {
@@ -48,6 +57,7 @@ void bubbleSort(double *array, int arraySize) {
 }
 
 static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInInts, int index) {
+    // Check if reallocation is necessary
     if (*numberOfEntries >= *capacityInInts) {
         *capacityInInts += BLOCK_SIZE / sizeof(int);
 
@@ -58,10 +68,12 @@ static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInI
         }
     }
 
+    // Append at index
     (*indexArray)[(*numberOfEntries)++] = index;
 }
 
 //***** Header function implementations: *****
+
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
@@ -111,7 +123,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     return sineArray;
 }
 
-//Takes a pointer to an array and creates a <filePath> containing all the values
+//Takes a pointer to an array and creates a <filePath> containing all the values (one value per line)
 //Returns 1 if everything worked, 0 if there was an error
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
     if (!filePath || !array || arrayLength <= 0) {
@@ -371,7 +383,7 @@ MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplit
 }
 
 // A2
-
+// Creates a histogram as an int-array with <numberOfBins> bins.
 int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
         exit(8);
@@ -381,7 +393,7 @@ int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
     if (histogram == NULL) {
         exit(9);
     }
-
+    // Determine minimum and maximum value in the input array
     double min = DBL_MAX;
     double max = -DBL_MAX;
 
@@ -394,21 +406,23 @@ int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
         }
     }
 
-    //wenn alle Werte gleich
+    // Special case: all values identical -> everything goes into first bin
     if (min == max) {
         histogram[0] = numberOfValues;
         return histogram;
     }
 
+    // Compute bin width (range divided by number of bins)
     double binWidth = (max - min) / numberOfBins;
 
     for (int i = 0; i < numberOfValues; i++) {
+        // Map value to bin index in [0, numberOfBins-1]
         int bin = (int) ((values[i] - min) / binWidth);
-
+        // Fix edge case when value == max (would produce bin == numberOfBins)
         if (bin == numberOfBins) {
             bin = numberOfBins - 1;
         }
-
+        // Increment bin counter
         histogram[bin]++;
     }
 
@@ -421,6 +435,7 @@ Histogram *createHistogram_empty() {
         exit(10);
     }
 
+    // Initialize members with "invalid" defaults
     h->numberOfBins = -1;
     h->bins = NULL;
     h->minimum = 0;
@@ -430,13 +445,17 @@ Histogram *createHistogram_empty() {
     return h;
 }
 
+// Creates a Histogram struct with allocated bins (all zero).
+// Does NOT compute min/max or fill bins (just reserves memory).
 Histogram *createHistogram_bins(int numberOfBins) {
     if (numberOfBins <= 0) {
         exit(11);
     }
 
-    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
+    // Create base struct
+    Histogram *h = createHistogram_empty(); //error handling done with exit in createHistogram_empty
 
+    // Allocate bins array
     h->numberOfBins = numberOfBins;
     h->bins = calloc(numberOfBins, sizeof(int));
 
@@ -448,6 +467,8 @@ Histogram *createHistogram_bins(int numberOfBins) {
     return h;
 }
 
+// Creates a Histogram struct directly from an input array.
+// Computes min/max, binWidth and fills the bin counters.
 Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins) {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
         exit(13);
@@ -455,6 +476,7 @@ Histogram *createHistogram_array(int numberOfValues, double *values, int numberO
 
     Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
 
+    // Determine minimum and maximum value
     double min = DBL_MAX;
     double max = -DBL_MAX;
 
@@ -466,13 +488,13 @@ Histogram *createHistogram_array(int numberOfValues, double *values, int numberO
             max = values[i];
         }
     }
-
+    // Store metadata
     h->minimum = min;
     h->maximum = max;
     h->numberOfBins = numberOfBins;
 
     h->bins = getHistogram(numberOfValues, values, numberOfBins);
-
+    // Compute bin width (0 if all values identical)
     if (min == max) {
         h->binWidth = 0;
     } else {
@@ -482,6 +504,7 @@ Histogram *createHistogram_array(int numberOfValues, double *values, int numberO
     return h;
 }
 
+// Frees a Histogram struct including its internal bins array.
 void deleteHistogram(Histogram *In) {
     if (In == NULL) {
         return;
@@ -491,6 +514,8 @@ void deleteHistogram(Histogram *In) {
     free(In);
 }
 
+// Computes the "area" as the sum of all samples.
+// Stores the result inside In->area and returns it.
 double computeArea(MMSignal *In) {
     if (In == NULL) {
         exit(14);
@@ -501,15 +526,17 @@ double computeArea(MMSignal *In) {
     }
 
     double area = 0;
-
+    // Sum over all samples
     for (int i = 0; i < In->numberOfSamples; i++) {
         area += In->samples[i];
     }
-
+    // Set result in struct
     In->area = area;
     return area;
 }
 
+// Computes the mean value of the signal.
+// Uses computeArea() and stores the result inside In->mean.
 double computeMean(MMSignal *In) {
     if (In == NULL) {
         exit(16);
@@ -519,10 +546,13 @@ double computeMean(MMSignal *In) {
         exit(17);
     }
 
+    // Mean = sum / N
     In->mean = computeArea(In) / In->numberOfSamples;
     return In->mean;
 }
 
+// Computes standard deviation:
+// sqrt( (1/N) * sum( (x_i - mean)^2 ) )
 double computeStandardDeviation(MMSignal *In) {
     if (In == NULL) {
         exit(18);
@@ -532,18 +562,23 @@ double computeStandardDeviation(MMSignal *In) {
         exit(19);
     }
 
+    // Compute mean (also caches it in the MMSignal)
     double mean = computeMean(In);
 
     double sum = 0;
 
+    // Accumulate squared differences
     for (int i = 0; i < In->numberOfSamples; i++) {
         double diff = In->samples[i] - mean;
         sum += diff * diff;
     }
 
+    // standard deviation
     return sqrt(sum / In->numberOfSamples);
 }
 
+// Computes the median of the signal.
+// Copies the array, sorts it, then selects the middle element(s).
 double computeMedian(MMSignal *In) {
     if (In == NULL) {
         exit(20);
@@ -555,6 +590,7 @@ double computeMedian(MMSignal *In) {
 
     int n = In->numberOfSamples;
 
+    // Copy samples so we do not destroy the original order
     double *tmp = malloc(n * sizeof(double));
     if (tmp == NULL) {
         exit(22);
@@ -564,13 +600,20 @@ double computeMedian(MMSignal *In) {
         tmp[i] = In->samples[i];
     }
 
+    // Sort copied values
+
+    // Depending on the MMSignal values, another algorithm might be better here.
+    // -> QuickSort/MergeSort?
+    // We chose bubblesort because it's easy to implement & no information about the values is given.
     bubbleSort(tmp, n);
 
     double median;
 
+    // Even length: average of the two middle values
     if (n % 2 == 0) {
         median = (tmp[n / 2 - 1] + tmp[n / 2]) / 2;
     } else {
+        // Odd length: exact middle value
         median = tmp[n / 2];
     }
 
@@ -603,7 +646,8 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
         double centerSample = signal->samples[sampleIndex];
         double rightSample = signal->samples[sampleIndex + 1];
 
-        //maximum
+        // --- Case 1: strict local maximum ---
+        // center is greater than both neighbors
         if (leftSample < centerSample &&
             centerSample > rightSample) {
             appendIndex(&extrema->maximumPositionArray,
@@ -614,7 +658,8 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
             continue;
         }
 
-        //minimum
+        // --- Case 2: strict local minimum ---
+        // center is smaller than both neighbors
         if (leftSample > centerSample &&
             centerSample < rightSample) {
             appendIndex(&extrema->minimumPositionArray,
@@ -625,7 +670,10 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
             continue;
         }
 
-        //plateau
+        // --- Case 3: plateau handling ---
+        // A plateau is a region of equal samples:
+        // ... a, p, p, p, b ...
+        // We only decide max/min by comparing neighbors around the plateau.
         if (centerSample == rightSample) {
             int plateauStartIndex = sampleIndex;
 
@@ -647,19 +695,21 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
                 if (leftNeighborSample < centerSample &&
                     centerSample > rightNeighborSample) {
                     for (int p = plateauStartIndex;
-                         p <= plateauEndIndex; p++)
+                         p <= plateauEndIndex; p++) {
                         appendIndex(&extrema->maximumPositionArray,
                                     &extrema->numberOfMaximumPositions,
                                     &maximumCapacityInInts,
                                     p);
+                    }
                 } else if (leftNeighborSample > centerSample &&
                            centerSample < rightNeighborSample) {
                     for (int p = plateauStartIndex;
-                         p <= plateauEndIndex; p++)
+                         p <= plateauEndIndex; p++) {
                         appendIndex(&extrema->minimumPositionArray,
                                     &extrema->numberOfMinimumPositions,
                                     &minimumCapacityInInts,
                                     p);
+                    }
                 }
             }
         }
@@ -670,7 +720,9 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
     return extrema;
 }
 
-
+// Computes entropy based on a histogram:
+// H = - sum_i p_i * log2(p_i)
+// where p_i is the relative frequency of bin i.
 double computeEntropy(Histogram *histogramIn) {
     if (histogramIn == NULL || histogramIn->bins == NULL || histogramIn->numberOfBins <= 0) {
         exit(25);
@@ -683,8 +735,9 @@ double computeEntropy(Histogram *histogramIn) {
         totalValues += histogramIn->bins[i];
     }
 
-    //relative Häufigkeit berechnen
+    // Compute entropy using relative frequencies (probabilities)
     for (int i = 0; i < histogramIn->numberOfBins; i += 1) {
+        // Only consider bins with non-zero count (avoid log2(0))
         if (histogramIn->bins[i] > 0) {
             double probability = (double) histogramIn->bins[i] / totalValues;
             entropy = entropy - probability * log2(probability);
@@ -694,6 +747,9 @@ double computeEntropy(Histogram *histogramIn) {
 }
 
 // A 3
+
+// Convolves two signals in the discrete-time sense.
+// Result length = N + M - 1
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     if (In1 == NULL || In2 == NULL || In1->samples == NULL || In2->samples == NULL || In1->numberOfSamples <= 0 || In2->numberOfSamples <= 0) {
         exit(26);
@@ -709,13 +765,14 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     for (int i = 0; i < length; i += 1) {
         result[i] = 0;
     }
-
+    // Compute sum of products
+    // result[i+j] accumulates In1[i] * In2[j]
     for (int i = 0; i < In1->numberOfSamples; i += 1) {
         for (int j = 0; j < In2->numberOfSamples; j += 1) {
             result[i + j] = result[i + j] + In1->samples[i] * In2->samples[j];
         }
     }
-
+    // Wrap result array with an MMSignal struct
     MMSignal *resultSignal = createSignal_array(length, result);
     if (resultSignal == NULL) {
         free(result);
@@ -725,17 +782,23 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     return resultSignal;
 }
 
+// Approximates a Gaussian bell curve by using a row of Pascal's triangle.
+// Steps:
+// 1) Compute binomial coefficients for the given row
+// 2) Normalize them so that the sum becomes 1 (acts like a smoothing kernel)
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 0) {
         exit(29);
     }
 
+    // Pascal row has (pascalLineNumber + 1) coefficients
     double *values = malloc((pascalLineNumber+1) * sizeof(double));
     if (values == NULL) {
         exit(30);
     }
 
-    //pascalzeile berechnen
+    // Compute Pascal row coefficients iteratively (binomial coefficients)
+    // values[i] = C(n, i)
     values[0] = 1;
     for (int i = 1; i < pascalLineNumber+1; i++) {
         values[i] = values[i - 1]
@@ -759,6 +822,11 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
 
 // A 4
 
+
+// Converts complex values from Cartesian form (real + j*imag)
+// to Polar form (amplitude + angle).
+// amplitudesOut[i] = sqrt(real^2 + imag^2)
+// angelsOut[i]     = atan2(imag, real)
 void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn, double *amplitudesOut, double *angelsOut) {
     if (realIn == NULL || imaginaryIn == NULL || amplitudesOut == NULL || angelsOut == NULL || numberOfValues <= 0) {
         exit(31);
@@ -766,25 +834,43 @@ void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn
 
     for (int i = 0; i < numberOfValues; i++) {
         amplitudesOut[i] = sqrt(realIn[i] * realIn[i] + imaginaryIn[i] * imaginaryIn[i]); // Radius
-        angelsOut[i] = atan2(imaginaryIn[i], realIn[i]); // Winkel
+        angelsOut[i] = atan2(imaginaryIn[i], realIn[i]); // Winkel   using atan2 to get correct quadrant
     }
 }
 
+// Converts complex values from Polar form (amplitude + angle)
+// to Cartesian form (real + j*imag).
+// realOut[i]      = amplitude * cos(angle)
+// imaginaryOut[i] = amplitude * sin(angle)
 void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut, double *imaginaryOut) {
     if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
         exit(32);
     }
 
     for (int i = 0; i < numberOfValues; i++) {
-        realOut[i] = amplitudesIn[i] * cos(angelsIn[i]); //Realteil
-        imaginaryOut[i] = amplitudesIn[i] * sin(angelsIn[i]); //Imaginärteil
+        realOut[i] = amplitudesIn[i] * cos(angelsIn[i]); //real part
+        imaginaryOut[i] = amplitudesIn[i] * sin(angelsIn[i]); //imaginary part
     }
 }
+
+// Computes the Discrete Fourier Transform (DFT) or inverse DFT (IDFT)
+// depending on Direction:
+//
+// Direction = +1 : forward transform
+// Direction = -1 : inverse transform (includes 1/N normalization)
+//
+// Inputs:  realIn[n], imaginaryIn[n]   (time-domain complex signal)
+// Outputs: realOut[k], imaginaryOut[k] (frequency-domain complex spectrum)
+//
+// Formula (complex form):
+// X[k] = sum_{n=0..N-1} x[n] * e^(j*Direction*2πkn/N)
+// For inverse transform, the result is divided by N.
 
 void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut, int Direction) {
     if(realIn == NULL || imaginaryIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
         exit(33);
     }
+    // Direction must be +1 (forward) or -1 (inverse)
     if (Direction != 1 && Direction != -1) {
         exit(34);
     }
@@ -793,10 +879,15 @@ void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOu
         imaginaryOut[k] = 0.0;
         for (int n = 0; n < numberOfValues; n++) {
             double angle = Direction * 2 * PI * k * n / numberOfValues;
+
+            // Complex multiplication:
+            // (realIn + j*imagIn) * (cos(angle) - j*sin(angle)) depending on sign
+            // Implemented here as separated real/imag updates
             realOut[k] += realIn[n] * cos(angle) + imaginaryIn[n] * sin(angle);
             imaginaryOut[k] += -realIn[n] * sin(angle) + imaginaryIn[n] * cos(angle);
         }
     }
+    // For inverse DFT: scale output by 1/N
     if(Direction == -1) {
         for (int k = 0; k < numberOfValues; k++) {
             realOut[k] /= numberOfValues;
