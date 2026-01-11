@@ -297,23 +297,22 @@ double *readArrayFile(char *fileName, int *arrayLength) {
             }
             free(numberReadHead);
         }
-
-    if (doubleArrayHead) {
-        NumNode *m = doubleArrayHead->next;
-        while (m) {
-            NumNode *tmp = m;
-            m = m->next;
-            free(tmp);
+        if (doubleArrayHead) {
+            NumNode *m = doubleArrayHead->next;
+            while (m) {
+                NumNode *tmp = m;
+                m = m->next;
+                free(tmp);
+            }
+          free(doubleArrayHead);
         }
-        free(doubleArrayHead);
-    }
 
-    if (filePointer) {
-        fclose(filePointer);
-    }
+        if (filePointer) {
+           fclose(filePointer);
+        }
 
-    free(values);
-    exit(2);
+        free(values);
+        exit(2);
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
