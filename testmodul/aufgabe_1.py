@@ -172,7 +172,11 @@ def test_writeCreateArrayFile():
         val = [float(x) for x in val]
         plt.plot(np.linspace(0, periods * np.pi, test_value[0][0]), val)
         plt.savefig(os.path.join(report.image_dir, "sine_wave_read.png"))
-    
+        allgood = True
+        for i in range(len(signal.samples)):
+            if abs(val[i] - signal.samples[i]) > 0.0001:
+                allgood = False
+                break
     report.add_test(
             name="createSineSignal",
             input_data={
@@ -195,7 +199,7 @@ def test_writeCreateArrayFile():
             expected = "signal geschrieben und gelesen",
             output = "vergeliche bild mit erstem. sollte identisch sein." if not crash else str(out),
             plots=["sine_wave_read.png"] if not crash else None,
-            passed="maby" if not crash else False,
+            passed=allgood
         )
     #plt.show()
 
@@ -204,7 +208,7 @@ def test_writeCreateArrayFile():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, filename="log.log", filemode="w", format="%(asctime)s - %(levelname)s - %(message)s", encoding="utf-8")
-    test_interpolateLine()
+    #test_interpolateLine()
     #test_scaleValuesInArray()
-    #test_writeCreateArrayFile()
+    test_writeCreateArrayFile()
     report.write()
