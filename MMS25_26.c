@@ -13,17 +13,18 @@ double PI = 3.14159265359;
 
 // Node for character-based parsing (used while reading numbers as strings)
 typedef struct Node {
-    char data;              // single character
-    struct Node *next;      // pointer to next character
-    struct Node *prev;      // pointer to previous character
+    char data; // single character
+    struct Node *next; // pointer to next character
+    struct Node *prev; // pointer to previous character
 } Node;
 
 // Node for storing parsed double values
 typedef struct NumNode {
-    double data;            // numeric value
-    struct NumNode *next;   // pointer to next value
-    struct NumNode *prev;   // pointer to previous value
+    double data; // numeric value
+    struct NumNode *next; // pointer to next value
+    struct NumNode *prev; // pointer to previous value
 } NumNode;
+
 //***** Helper functions: *****
 
 
@@ -187,9 +188,10 @@ double *readArrayFile(char *fileName, int *arrayLength) {
 
     int ch; //This is an int because fgetc returns characters interpreted as integers; EOF is interpreted as -1
     int currentNumberLength = 0; //Counter for the current numberLength
-    while ((ch = fgetc(filePointer)) != EOF) { //Loop through the file
+    while ((ch = fgetc(filePointer)) != EOF) {
+        //Loop through the file
         //Determine if the number contained in the linked list is finished
-        if (ch == '\n') { // CASE: it's finished
+        if (ch == '\n') /* CASE: It's finished */ {
             // 1) Allocate space for the double as a string
             char *doubleAsString = malloc(currentNumberLength + 1);
             if (!doubleAsString) {
@@ -239,8 +241,7 @@ double *readArrayFile(char *fileName, int *arrayLength) {
 
             // 8) Reset the counter
             currentNumberLength = 0;
-        }
-        else { //CASE: It's not finished
+        } else /* CASE: It's not finished */ {
             // 1) Create a new node for the newly read character
             Node *newNode = malloc(sizeof(Node));
             if (!newNode) {
@@ -265,7 +266,8 @@ double *readArrayFile(char *fileName, int *arrayLength) {
         }
     }
 
-    if (numberReadHead->next) { //Case: File doesnt end with \n; Attack the user with an exit()
+    if (numberReadHead->next) {
+        //Case: File doesnt end with \n; Attack the user with an exit()
         goto cleanup;
     }
 
@@ -299,32 +301,32 @@ double *readArrayFile(char *fileName, int *arrayLength) {
     return values;
 
     // ----------- CLEANUP ---------------------------------------------------
-    cleanup:
-        if (numberReadHead) {
-            Node *n = numberReadHead->next;
-            while (n) {
-                Node *tmp = n;
-                n = n->next;
-                free(tmp);
-            }
-            free(numberReadHead);
+cleanup:
+    if (numberReadHead) {
+        Node *n = numberReadHead->next;
+        while (n) {
+            Node *tmp = n;
+            n = n->next;
+            free(tmp);
         }
-        if (doubleArrayHead) {
-            NumNode *m = doubleArrayHead->next;
-            while (m) {
-                NumNode *tmp = m;
-                m = m->next;
-                free(tmp);
-            }
-          free(doubleArrayHead);
+        free(numberReadHead);
+    }
+    if (doubleArrayHead) {
+        NumNode *m = doubleArrayHead->next;
+        while (m) {
+            NumNode *tmp = m;
+            m = m->next;
+            free(tmp);
         }
+        free(doubleArrayHead);
+    }
 
-        if (filePointer) {
-           fclose(filePointer);
-        }
+    if (filePointer) {
+        fclose(filePointer);
+    }
 
-        free(values);
-        exit(2);
+    free(values);
+    exit(2);
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
@@ -751,7 +753,8 @@ double computeEntropy(Histogram *histogramIn) {
 // Convolves two signals in the discrete-time sense.
 // Result length = N + M - 1
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
-    if (In1 == NULL || In2 == NULL || In1->samples == NULL || In2->samples == NULL || In1->numberOfSamples <= 0 || In2->numberOfSamples <= 0) {
+    if (In1 == NULL || In2 == NULL || In1->samples == NULL || In2->samples == NULL || In1->numberOfSamples <= 0
+        || In2->numberOfSamples <= 0) {
         exit(26);
     }
 
@@ -792,7 +795,7 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     }
 
     // Pascal row has (pascalLineNumber + 1) coefficients
-    double *values = malloc((pascalLineNumber+1) * sizeof(double));
+    double *values = malloc((pascalLineNumber + 1) * sizeof(double));
     if (values == NULL) {
         exit(30);
     }
@@ -800,23 +803,23 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     // Compute Pascal row coefficients iteratively (binomial coefficients)
     // values[i] = C(n, i)
     values[0] = 1;
-    for (int i = 1; i < pascalLineNumber+1; i++) {
+    for (int i = 1; i < pascalLineNumber + 1; i++) {
         values[i] = values[i - 1]
-                  * (double)(pascalLineNumber+1 - i)
-                  / (double)i;
+                    * (double) (pascalLineNumber + 1 - i)
+                    / (double) i;
     }
 
     //normierung (Summe = 1 → Gauss-Approximation)
     double sum = 0;
-    for (int i = 0; i < pascalLineNumber+1; i++) {
+    for (int i = 0; i < pascalLineNumber + 1; i++) {
         sum += values[i];
     }
 
-    for (int i = 0; i < pascalLineNumber+1; i++) {
+    for (int i = 0; i < pascalLineNumber + 1; i++) {
         values[i] /= sum;
     }
 
-    MMSignal *gaussSignal = createSignal_array(pascalLineNumber+1, values);
+    MMSignal *gaussSignal = createSignal_array(pascalLineNumber + 1, values);
     return gaussSignal;
 }
 
@@ -827,7 +830,8 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
 // to Polar form (amplitude + angle).
 // amplitudesOut[i] = sqrt(real^2 + imag^2)
 // angelsOut[i]     = atan2(imag, real)
-void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn, double *amplitudesOut, double *angelsOut) {
+void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn, double *amplitudesOut,
+                         double *angelsOut) {
     if (realIn == NULL || imaginaryIn == NULL || amplitudesOut == NULL || angelsOut == NULL || numberOfValues <= 0) {
         exit(31);
     }
@@ -842,7 +846,8 @@ void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn
 // to Cartesian form (real + j*imag).
 // realOut[i]      = amplitude * cos(angle)
 // imaginaryOut[i] = amplitude * sin(angle)
-void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut, double *imaginaryOut) {
+void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut,
+                         double *imaginaryOut) {
     if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
         exit(32);
     }
@@ -866,8 +871,9 @@ void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angel
 // X[k] = sum_{n=0..N-1} x[n] * e^(j*Direction*2πkn/N)
 // For inverse transform, the result is divided by N.
 
-void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut, int Direction) {
-    if(realIn == NULL || imaginaryIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
+void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut,
+         int Direction) {
+    if (realIn == NULL || imaginaryIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
         exit(33);
     }
     // Direction must be +1 (forward) or -1 (inverse)
@@ -888,7 +894,7 @@ void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOu
         }
     }
     // For inverse DFT: scale output by 1/N
-    if(Direction == -1) {
+    if (Direction == -1) {
         for (int k = 0; k < numberOfValues; k++) {
             realOut[k] /= numberOfValues;
             imaginaryOut[k] /= numberOfValues;
