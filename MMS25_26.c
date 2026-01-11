@@ -142,103 +142,178 @@ double *readArrayFile(char *fileName, int *arrayLength) {
     if (!fileName || !arrayLength) {
         exit(2);
     }
-    FILE *filePointer = fopen(fileName, "r");
+
+    //Initialize everything with NULL for the cleanup
+    FILE *filePointer = NULL;
+    Node *numberReadHead = NULL;
+    NumNode *doubleArrayHead = NULL;
+    double *values = NULL;
+
+    filePointer = fopen(fileName, "r");
     if (!filePointer) {
         printf("Could not open file\n");
         exit(2);
     }
 
-    Node *numberReadHead = malloc(sizeof(Node));
+    //Node for parsing a number:
+    // [head] -> <char>[1] -> <char>[.] -> <char>[2]
+    numberReadHead = malloc(sizeof(Node));
+    if (!numberReadHead) {
+        goto cleanup;
+    }
     numberReadHead->next = NULL;
     numberReadHead->prev = NULL;
 
-    NumNode *doubleArrayHead = malloc(sizeof(NumNode));
+    //Node for the numbers:
+    // [head] -> <double>[x1] -> <double>[x2] -> <double>[x3]
+    doubleArrayHead = malloc(sizeof(NumNode));
+    if (!doubleArrayHead) {
+        goto cleanup;
+    }
     doubleArrayHead->next = NULL;
     doubleArrayHead->prev = NULL;
 
-    int ch; //fgetc braucht int
-    while ((ch = fgetc(filePointer)) != EOF) {
-        int currentNumberLength = 0;
+    int ch; //This is an int because fgetc returns characters interpreted as integers; EOF is interpreted as -1
+    int currentNumberLength = 0; //Counter for the current numberLength
+    while ((ch = fgetc(filePointer)) != EOF) { //Loop through the file
+        //Determine if the number contained in the linked list is finished
+        if (ch == '\n') { // CASE: it's finished
+            // 1) Allocate space for the double as a string
+            char *doubleAsString = malloc(currentNumberLength + 1);
+            if (!doubleAsString) {
+                goto cleanup;
+            }
 
-        Node *newNode = malloc(sizeof(Node));
-        newNode->data = (char) ch; //int zurück zu char
-        newNode->next = NULL;
-
-        Node *previousNode = numberReadHead;
-        while (previousNode->next != NULL) {
-            previousNode = previousNode->next;
-            currentNumberLength++;
-        }
-
-        previousNode->next = newNode;
-        newNode->prev = previousNode;
-
-        if (ch == '\n') {
-            char *doubleAsString = malloc(currentNumberLength + 1); //+1 für '\0'
-
+            // 2) Write the data of the numberRead linked list into the newly created array
             int i = 0;
             Node *iterator = numberReadHead;
-            while (iterator->next != NULL) {
+            while (iterator->next) {
                 iterator = iterator->next;
                 doubleAsString[i++] = iterator->data;
             }
-            doubleAsString[i - 1] = '\0'; //wegen stringdarstellung in c
+            doubleAsString[i - 1] = '\0'; //A string has to end with \0
 
+            // 3) Parse the string to a double value
             double parsedResult = strtod(doubleAsString, NULL);
 
-            NumNode *lastDoubleArrayNode = doubleArrayHead;
-            while (lastDoubleArrayNode->next != NULL) {
-                lastDoubleArrayNode = lastDoubleArrayNode->next;
-            }
-
-            NumNode *newDoubleArrayNode = malloc(sizeof(NumNode));
-            newDoubleArrayNode->data = parsedResult;
-            newDoubleArrayNode->next = NULL;
-            newDoubleArrayNode->prev = lastDoubleArrayNode;
-            lastDoubleArrayNode->next = newDoubleArrayNode;
-
+            // 4) Free the allocated array
             free(doubleAsString);
 
+            // 5) Get last instance of the linked list containing the final doubles
+            NumNode *last = doubleArrayHead;
+            while (last->next) {
+                last = last->next;
+            }
+
+            // 6) Create a new double node & push it to the final linked list
+            NumNode *newDouble = malloc(sizeof(NumNode));
+            if (!newDouble) {
+                goto cleanup;
+            }
+
+            newDouble->data = parsedResult;
+            newDouble->next = NULL;
+            newDouble->prev = last;
+            last->next = newDouble;
+
+            // 7) Reset/Clear the current number linked list
             Node *n = numberReadHead->next;
-            while (n != NULL) {
+            while (n) {
                 Node *tmp = n;
                 n = n->next;
                 free(tmp);
             }
             numberReadHead->next = NULL;
+
+            // 8) Reset the counter
+            currentNumberLength = 0;
+        }
+        else { //CASE: It's not finished
+            // 1) Create a new node for the newly read character
+            Node *newNode = malloc(sizeof(Node));
+            if (!newNode) {
+                goto cleanup;
+            }
+
+            newNode->data = (char) ch; //Interpret the int as a char
+            newNode->next = NULL;
+
+            // 2) Get the end of the current numberRead Linked List
+            Node *previousNode = numberReadHead;
+            while (previousNode->next) {
+                previousNode = previousNode->next;
+            }
+
+            // 3) Add the numberRead node to the linked list
+            previousNode->next = newNode;
+            newNode->prev = previousNode;
+
+            // 4) Increment the current number length
+            currentNumberLength++;
         }
     }
 
-    free(numberReadHead);
+    if (numberReadHead->next) { //Case: File doesnt end with \n; Attack the user with an exit()
+        goto cleanup;
+    }
 
-    //Länge bestimmen
+    //Get&Set final array length
     *arrayLength = 0;
-    NumNode *iterator = doubleArrayHead;
-    while (iterator->next != NULL) {
+    NumNode *it = doubleArrayHead->next;
+    while (it) {
         (*arrayLength)++;
-        iterator = iterator->next;
+        it = it->next;
     }
 
-    double *values = malloc(sizeof(double) * (*arrayLength));
-    if (values == NULL) {
-        fclose(filePointer);
-        free(doubleArrayHead);
-        exit(2);
+    //Create the array
+    values = malloc(sizeof(double) * (*arrayLength));
+    if (!values) {
+        goto cleanup;
     }
 
-    int i = *arrayLength;
-    while (iterator != doubleArrayHead) {
-        i--;
-        values[i] = iterator->data;
-
-        NumNode *tmp = iterator;
-        iterator = iterator->prev;
+    //Write into the array & free the linked list
+    it = doubleArrayHead->next;
+    for (int i = 0; i < *arrayLength; i++) {
+        values[i] = it->data;
+        NumNode *tmp = it;
+        it = it->next;
         free(tmp);
     }
 
+    //Free the rest
     free(doubleArrayHead);
     fclose(filePointer);
+    free(numberReadHead);
     return values;
+
+// ----------- CLEANUP ---------------------------------------------------
+    cleanup:
+        if (numberReadHead) {
+            Node *n = numberReadHead->next;
+            while (n) {
+                Node *tmp = n;
+                n = n->next;
+                free(tmp);
+            }
+            free(numberReadHead);
+        }
+
+    if (doubleArrayHead) {
+        NumNode *m = doubleArrayHead->next;
+        while (m) {
+            NumNode *tmp = m;
+            m = m->next;
+            free(tmp);
+        }
+        free(doubleArrayHead);
+    }
+
+    if (filePointer) {
+        fclose(filePointer);
+    }
+
+    free(values);
+    exit(2);
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
