@@ -117,10 +117,13 @@ double *scaleValuesInArray(int numberOfValues, double *values, double min, doubl
 
 //creates a sine array of the length <totalSamples>.
 double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude) {
-    double *sineArray = calloc(totalSamples, sizeof(double));
-
-    if (sineArray == NULL || totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
+    if (totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
         exit(WRONG_ARGUMENT_EXIT);
+    }
+
+    double *sineArray = calloc(totalSamples, sizeof(double));
+    if (!sineArray) {
+        exit(MALLOC_FAILED_EXIT);
     }
 
     for (int i = 0; i < totalSamples; i += 1) {
