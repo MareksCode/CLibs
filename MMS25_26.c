@@ -377,9 +377,13 @@ void deleteMMSignal(MMSignal *In) {
         exit(WRONG_ARGUMENT_EXIT);
     }
 
-    free(In->localExtrema);
-    free(In->samples);
+    if (In->localExtrema != NULL) {
+        free(In->localExtrema->maximumPositionArray);
+        free(In->localExtrema->minimumPositionArray);
+        free(In->localExtrema);
+    }
 
+    free(In->samples);
     free(In);
 }
 
