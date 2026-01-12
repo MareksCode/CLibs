@@ -616,7 +616,7 @@ double computeMedian(MMSignal *In) {
     // Sort copied values
 
     // Depending on the MMSignal values, another algorithm might be better here.
-    // -> QuickSort/MergeSort?
+    // qsort() could be used
     // We chose bubblesort because it's easy to implement & no information about the values is given.
     bubbleSort(tmp, n);
 
