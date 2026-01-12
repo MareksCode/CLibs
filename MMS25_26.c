@@ -1,21 +1,19 @@
 #include "MMS25_26.h"
 
 #include <math.h>
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <float.h>
 
 //***** Exit Codes: *****
-int WRONG_ARGUMENT_EXIT = 3;
-int MALLOC_FAILED_EXIT = 4;
-int OPENING_FILE_FAILED_EXIT = 5;
-int WRONG_FILE_FORMAT_EXIT = 6;
+const int WRONG_ARGUMENT_EXIT = 3;
+const int MALLOC_FAILED_EXIT = 4;
+const int OPENING_FILE_FAILED_EXIT = 5;
+const int WRONG_FILE_FORMAT_EXIT = 6;
 
-//***** Constants: *****
+//***** Other Constants: *****
 
-double PI = 3.14159265359;
+const double PI = 3.14159265359;
 
 // Node for character-based parsing (used while reading numbers as strings)
 typedef struct Node {
@@ -83,21 +81,20 @@ static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInI
 
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
-    if (xb > x2 || xb < x1) {
-        exit(WRONG_ARGUMENT_EXIT);
-    }
     if (x1 == x2) {
         exit(WRONG_ARGUMENT_EXIT);
     }
 
-    double smallerX = x1;
-    if (x2 < x1) {
-        smallerX = x2;
+    double minX = x1 < x2 ? x1 : x2;
+    double maxX = x1 > x2 ? x1 : x2;
+
+    if (xb < minX || xb > maxX) {
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
-    double alpha = //Percentage 0-1
-        (xb - smallerX) //Distance between x1 & xb
-        / fabs(x1 - x2); //Distance between x1 & x2
+    double alpha = //minx to xb portion
+        (xb - minX) //Range from minX to xb
+        / (maxX-minX); //Total range
 
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
