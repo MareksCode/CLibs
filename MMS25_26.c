@@ -202,6 +202,12 @@ double *readArrayFile(char *fileName, int *arrayLength) {
         //Loop through the file
         //Determine if the number contained in the linked list is finished
         if (ch == '\n') /* CASE: It's finished */ {
+            // CASE: no number, only \n: Attack the user with an exit()
+            if (currentNumberLength == 0) {
+                currentErrorCode = WRONG_FILE_FORMAT_EXIT;
+                goto cleanup;
+            }
+
             // 1) Allocate space for the double as a string
             char *doubleAsString = malloc(currentNumberLength + 1);
             if (!doubleAsString) {
