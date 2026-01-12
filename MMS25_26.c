@@ -147,7 +147,12 @@ int writeArrayFile(char *filePath, double *array, int arrayLength) {
     }
 
     for (int i = 0; i < arrayLength; i++) {
-        fprintf(filePointer, "%f\n", array[i]);
+        int result = fprintf(filePointer, "%f\n", array[i]);
+
+        if (result < 0) { //CASE: fprintf failed
+            fclose(filePointer);
+            return 0;
+        }
     }
 
     fclose(filePointer);
