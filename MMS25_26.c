@@ -7,6 +7,12 @@
 #include <string.h>
 #include <float.h>
 
+//***** Exit Codes: *****
+int WRONG_ARGUMENT_EXIT = 3;
+int MALLOC_FAILED_EXIT = 4;
+int OPENING_FILE_FAILED_EXIT = 5;
+int WRONG_FILE_FORMAT_EXIT = 6;
+
 //***** Constants: *****
 
 double PI = 3.14159265359;
@@ -34,8 +40,7 @@ typedef struct NumNode {
  */
 double interpolateDigitsByAlpha(double x1, double x2, double alpha) {
     if (alpha < 0 || alpha > 1) {
-        printf("Wrong usage! Alpha must be between 0 and 1.\n");
-        exit(3);
+        exit(WRONG_ARGUMENT_EXIT);
     }
     double diff = x2 - x1;
     return x1 + alpha * diff;
@@ -65,7 +70,7 @@ static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInI
         *indexArray = realloc(*indexArray,
                               (*capacityInInts) * sizeof(int));
         if (!*indexArray) {
-            exit(42);
+            exit(MALLOC_FAILED_EXIT);
         }
     }
 
@@ -79,10 +84,10 @@ static void appendIndex(int **indexArray, int *numberOfEntries, int *capacityInI
 //Returns a y value between two points represented by p1 = (<x1>,<y1>) and p2 = (<x2>,<y2>) using x between <x1> and <x2>
 double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
     if (xb > x2 || xb < x1) {
-        exit(4);
+        exit(WRONG_ARGUMENT_EXIT);
     }
     if (x1 == x2) {
-        exit(5);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     double smallerX = x1;
@@ -90,7 +95,9 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
         smallerX = x2;
     }
 
-    double alpha = (xb - smallerX) / fabs(x1 - x2);
+    double alpha = //Percentage 0-1
+        (xb - smallerX) //Distance between x1 & xb
+        / fabs(x1 - x2); //Distance between x1 & x2
 
     return interpolateDigitsByAlpha(y1, y2, alpha);
 }
@@ -98,7 +105,7 @@ double interpolateLine(double x1, double y1, double x2, double y2, double xb) {
 //using the formula value * scalingfactor - min
 double *scaleValuesInArray(int numberOfValues, double *values, double min, double scalingFactor) {
     if (numberOfValues <= 0 || !values) {
-        exit(6);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     for (int i = 0; i < numberOfValues; i++) {
@@ -113,8 +120,7 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
     double *sineArray = calloc(totalSamples, sizeof(double));
 
     if (sineArray == NULL || totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
-        printf("creating the sine array failed\n");
-        exit(7);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     for (int i = 0; i < totalSamples; i += 1) {
@@ -126,9 +132,10 @@ double *createSineArray(int totalSamples, int samplesPerPeriod, double amplitude
 
 //Takes a pointer to an array and creates a <filePath> containing all the values (one value per line)
 //Returns 1 if everything worked, 0 if there was an error
+//Also returns 0 on wrong arguments (because who needs consistency)
 int writeArrayFile(char *filePath, double *array, int arrayLength) {
     if (!filePath || !array || arrayLength <= 0) {
-        exit(2);
+        return 0;
     }
 
     FILE *filePointer;
@@ -136,7 +143,6 @@ int writeArrayFile(char *filePath, double *array, int arrayLength) {
     filePointer = fopen(filePath, "w");
 
     if (filePointer == NULL) {
-        printf("Error creating new file\n");
         return 0;
     }
 
@@ -146,14 +152,13 @@ int writeArrayFile(char *filePath, double *array, int arrayLength) {
 
     fclose(filePointer);
 
-    printf("File created\n");
     return 1;
 }
 
 //reads <filePath> and returns the array length of the passed array to the parsed numbersequence
 double *readArrayFile(char *fileName, int *arrayLength) {
     if (!fileName || !arrayLength) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     //Initialize everything with NULL for the cleanup
@@ -162,10 +167,12 @@ double *readArrayFile(char *fileName, int *arrayLength) {
     NumNode *doubleArrayHead = NULL;
     double *values = NULL;
 
+    int currentErrorCode = MALLOC_FAILED_EXIT;
+
     filePointer = fopen(fileName, "r");
     if (!filePointer) {
         printf("Could not open file\n");
-        exit(2);
+        exit(OPENING_FILE_FAILED_EXIT);
     }
 
     //Node for parsing a number:
@@ -268,6 +275,7 @@ double *readArrayFile(char *fileName, int *arrayLength) {
 
     if (numberReadHead->next) {
         //Case: File doesnt end with \n; Attack the user with an exit()
+        currentErrorCode = WRONG_FILE_FORMAT_EXIT;
         goto cleanup;
     }
 
@@ -326,15 +334,19 @@ cleanup:
     }
 
     free(values);
-    exit(2);
+    exit(currentErrorCode); //May change depending on the goto
 }
 
 MMSignal *createSignal_array(int numberOfValues, double *values) {
     if (numberOfValues <= 0 || !values) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     MMSignal *newSignal = malloc(sizeof(MMSignal));
+
+    if (!newSignal) {
+        exit(MALLOC_FAILED_EXIT);
+    }
 
     newSignal->numberOfSamples = numberOfValues;
     newSignal->samples = values;
@@ -348,7 +360,7 @@ MMSignal *createSignal_array(int numberOfValues, double *values) {
 
 MMSignal *createSignal_file(char *fileName) {
     if (!fileName) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     int arraySize = 0;
@@ -359,7 +371,7 @@ MMSignal *createSignal_file(char *fileName) {
 
 void deleteMMSignal(MMSignal *In) {
     if (In == NULL) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     free(In->localExtrema);
@@ -370,7 +382,7 @@ void deleteMMSignal(MMSignal *In) {
 
 void writeSignal(MMSignal *In, char *fileName) {
     if (!In || !fileName) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     writeArrayFile(fileName, In->samples, In->numberOfSamples);
@@ -378,7 +390,7 @@ void writeSignal(MMSignal *In, char *fileName) {
 
 MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplitude) {
     if (totalSamples <= 0 || samplesPerPeriod <= 0 || amplitude <= 0) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
     MMSignal *newSignal = createSignal_array(totalSamples, createSineArray(totalSamples, samplesPerPeriod, amplitude));
     return newSignal;
@@ -388,12 +400,12 @@ MMSignal *createSineSignal(int totalSamples, int samplesPerPeriod, double amplit
 // Creates a histogram as an int-array with <numberOfBins> bins.
 int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
-        exit(8);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     int *histogram = calloc(numberOfBins, sizeof(int));
     if (histogram == NULL) {
-        exit(9);
+        exit(MALLOC_FAILED_EXIT);
     }
     // Determine minimum and maximum value in the input array
     double min = DBL_MAX;
@@ -434,7 +446,7 @@ int *getHistogram(int numberOfValues, double *values, int numberOfBins) {
 Histogram *createHistogram_empty() {
     Histogram *h = malloc(sizeof(Histogram));
     if (h == NULL) {
-        exit(10);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     // Initialize members with "invalid" defaults
@@ -451,11 +463,11 @@ Histogram *createHistogram_empty() {
 // Does NOT compute min/max or fill bins (just reserves memory).
 Histogram *createHistogram_bins(int numberOfBins) {
     if (numberOfBins <= 0) {
-        exit(11);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     // Create base struct
-    Histogram *h = createHistogram_empty(); //error handling done with exit in createHistogram_empty
+    Histogram *h = createHistogram_empty(); //malloc error handling done with exit in createHistogram_empty
 
     // Allocate bins array
     h->numberOfBins = numberOfBins;
@@ -463,7 +475,7 @@ Histogram *createHistogram_bins(int numberOfBins) {
 
     if (h->bins == NULL) {
         free(h);
-        exit(12);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     return h;
@@ -473,10 +485,10 @@ Histogram *createHistogram_bins(int numberOfBins) {
 // Computes min/max, binWidth and fills the bin counters.
 Histogram *createHistogram_array(int numberOfValues, double *values, int numberOfBins) {
     if (numberOfValues <= 0 || numberOfBins <= 0 || values == NULL) {
-        exit(13);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
-    Histogram *h = createHistogram_empty(); //error handling schon durch exit in createHistogram_empty
+    Histogram *h = createHistogram_empty(); //malloc error handling done by exit in createHistogram_empty
 
     // Determine minimum and maximum value
     double min = DBL_MAX;
@@ -519,12 +531,8 @@ void deleteHistogram(Histogram *In) {
 // Computes the "area" as the sum of all samples.
 // Stores the result inside In->area and returns it.
 double computeArea(MMSignal *In) {
-    if (In == NULL) {
-        exit(14);
-    }
-
-    if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(15);
+    if (In == NULL || In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     double area = 0;
@@ -540,12 +548,8 @@ double computeArea(MMSignal *In) {
 // Computes the mean value of the signal.
 // Uses computeArea() and stores the result inside In->mean.
 double computeMean(MMSignal *In) {
-    if (In == NULL) {
-        exit(16);
-    }
-
-    if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(17);
+    if (!In || In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     // Mean = sum / N
@@ -556,12 +560,8 @@ double computeMean(MMSignal *In) {
 // Computes standard deviation:
 // sqrt( (1/N) * sum( (x_i - mean)^2 ) )
 double computeStandardDeviation(MMSignal *In) {
-    if (In == NULL) {
-        exit(18);
-    }
-
-    if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(19);
+    if (!In || In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     // Compute mean (also caches it in the MMSignal)
@@ -582,12 +582,8 @@ double computeStandardDeviation(MMSignal *In) {
 // Computes the median of the signal.
 // Copies the array, sorts it, then selects the middle element(s).
 double computeMedian(MMSignal *In) {
-    if (In == NULL) {
-        exit(20);
-    }
-
-    if (In->samples == NULL || In->numberOfSamples <= 0) {
-        exit(21);
+    if (!In || In->samples == NULL || In->numberOfSamples <= 0) {
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     int n = In->numberOfSamples;
@@ -595,7 +591,7 @@ double computeMedian(MMSignal *In) {
     // Copy samples so we do not destroy the original order
     double *tmp = malloc(n * sizeof(double));
     if (tmp == NULL) {
-        exit(22);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     for (int i = 0; i < n; i++) {
@@ -625,13 +621,13 @@ double computeMedian(MMSignal *In) {
 
 LocalExtrema *computeExtrema(MMSignal *signal) {
     if (!signal) {
-        exit(2);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     LocalExtrema *extrema = malloc(sizeof(*extrema));
 
     if (!extrema) {
-        exit(2);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     extrema->numberOfMaximumPositions = 0;
@@ -641,9 +637,21 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
     int minimumCapacityInInts = BLOCK_SIZE / sizeof(int);
 
     extrema->maximumPositionArray = malloc(BLOCK_SIZE);
+
+    if (!extrema->maximumPositionArray) {
+        free(extrema);
+        exit(MALLOC_FAILED_EXIT);
+    }
+
     extrema->minimumPositionArray = malloc(BLOCK_SIZE);
 
-    for (int sampleIndex = 1; sampleIndex < signal->numberOfSamples - 1;) {
+    if (!extrema->minimumPositionArray) {
+        free(extrema->maximumPositionArray);
+        free(extrema);
+        exit(MALLOC_FAILED_EXIT);
+    }
+
+    for (int sampleIndex = 1; sampleIndex < signal->numberOfSamples - 1;) { //Loop doesn't increment by itself
         double leftSample = signal->samples[sampleIndex - 1];
         double centerSample = signal->samples[sampleIndex];
         double rightSample = signal->samples[sampleIndex + 1];
@@ -656,7 +664,7 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
                         &extrema->numberOfMaximumPositions,
                         &maximumCapacityInInts,
                         sampleIndex);
-            sampleIndex++;
+            sampleIndex++; //Increment loop var
             continue;
         }
 
@@ -668,7 +676,7 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
                         &extrema->numberOfMinimumPositions,
                         &minimumCapacityInInts,
                         sampleIndex);
-            sampleIndex++;
+            sampleIndex++; //Increment loop var
             continue;
         }
 
@@ -677,8 +685,9 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
         // ... a, p, p, p, b ...
         // We only decide max/min by comparing neighbors around the plateau.
         if (centerSample == rightSample) {
-            int plateauStartIndex = sampleIndex;
+            int plateauStartIndex = sampleIndex; //Mark the beginning of the plateau
 
+            //Go through the plateau from left to right & increment sampleIndex
             while (sampleIndex < signal->numberOfSamples - 1 &&
                    signal->samples[sampleIndex] ==
                    signal->samples[sampleIndex + 1]) {
@@ -689,6 +698,7 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
 
             if (plateauStartIndex > 0 &&
                 plateauEndIndex < signal->numberOfSamples - 1) {
+                //Check the plateau neighbours & check if it's a min or max
                 double leftNeighborSample =
                         signal->samples[plateauStartIndex - 1];
                 double rightNeighborSample =
@@ -696,6 +706,7 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
 
                 if (leftNeighborSample < centerSample &&
                     centerSample > rightNeighborSample) {
+                    // Maximum
                     for (int p = plateauStartIndex;
                          p <= plateauEndIndex; p++) {
                         appendIndex(&extrema->maximumPositionArray,
@@ -705,6 +716,7 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
                     }
                 } else if (leftNeighborSample > centerSample &&
                            centerSample < rightNeighborSample) {
+                    // Minimum
                     for (int p = plateauStartIndex;
                          p <= plateauEndIndex; p++) {
                         appendIndex(&extrema->minimumPositionArray,
@@ -716,18 +728,18 @@ LocalExtrema *computeExtrema(MMSignal *signal) {
             }
         }
 
-        sampleIndex++;
+        sampleIndex++; // increment the for loop to analyze the next value
     }
 
     return extrema;
 }
 
-// Computes entropy based on a histogram:
+// Computes shannon entropy based on a histogram:
 // H = - sum_i p_i * log2(p_i)
 // where p_i is the relative frequency of bin i.
 double computeEntropy(Histogram *histogramIn) {
     if (histogramIn == NULL || histogramIn->bins == NULL || histogramIn->numberOfBins <= 0) {
-        exit(25);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     double entropy = 0;
@@ -755,14 +767,14 @@ double computeEntropy(Histogram *histogramIn) {
 MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     if (In1 == NULL || In2 == NULL || In1->samples == NULL || In2->samples == NULL || In1->numberOfSamples <= 0
         || In2->numberOfSamples <= 0) {
-        exit(26);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     int length = In1->numberOfSamples + In2->numberOfSamples - 1;
     double *result = malloc(length * sizeof(double));
 
     if (result == NULL) {
-        exit(27);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     for (int i = 0; i < length; i += 1) {
@@ -777,10 +789,6 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
     }
     // Wrap result array with an MMSignal struct
     MMSignal *resultSignal = createSignal_array(length, result);
-    if (resultSignal == NULL) {
-        free(result);
-        exit(28);
-    }
 
     return resultSignal;
 }
@@ -791,13 +799,13 @@ MMSignal *convoluteSignals(MMSignal *In1, MMSignal *In2) {
 // 2) Normalize them so that the sum becomes 1 (acts like a smoothing kernel)
 MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
     if (pascalLineNumber < 0) {
-        exit(29);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     // Pascal row has (pascalLineNumber + 1) coefficients
     double *values = malloc((pascalLineNumber + 1) * sizeof(double));
     if (values == NULL) {
-        exit(30);
+        exit(MALLOC_FAILED_EXIT);
     }
 
     // Compute Pascal row coefficients iteratively (binomial coefficients)
@@ -833,7 +841,7 @@ MMSignal *approximateGaussianBellCurve(int pascalLineNumber) {
 void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn, double *amplitudesOut,
                          double *angelsOut) {
     if (realIn == NULL || imaginaryIn == NULL || amplitudesOut == NULL || angelsOut == NULL || numberOfValues <= 0) {
-        exit(31);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     for (int i = 0; i < numberOfValues; i++) {
@@ -849,7 +857,7 @@ void getCartesianToPolar(int numberOfValues, double *realIn, double *imaginaryIn
 void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angelsIn, double *realOut,
                          double *imaginaryOut) {
     if (amplitudesIn == NULL || angelsIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
-        exit(32);
+        exit(WRONG_ARGUMENT_EXIT);
     }
 
     for (int i = 0; i < numberOfValues; i++) {
@@ -874,11 +882,11 @@ void getPolarToCartesian(int numberOfValues, double *amplitudesIn, double *angel
 void dft(int numberOfValues, double *realIn, double *imaginaryIn, double *realOut, double *imaginaryOut,
          int Direction) {
     if (realIn == NULL || imaginaryIn == NULL || realOut == NULL || imaginaryOut == NULL || numberOfValues <= 0) {
-        exit(33);
+        exit(WRONG_ARGUMENT_EXIT);
     }
     // Direction must be +1 (forward) or -1 (inverse)
     if (Direction != 1 && Direction != -1) {
-        exit(34);
+        exit(WRONG_ARGUMENT_EXIT);
     }
     for (int k = 0; k < numberOfValues; k++) {
         realOut[k] = 0.0;
